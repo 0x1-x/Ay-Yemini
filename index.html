@@ -179,8 +179,24 @@ h1{font-size:clamp(30px,8vw,42px);font-weight:400;letter-spacing:.02em;line-heig
 .revealed .next{display:inline-block;animation:fadeIn .6s var(--ease) .5s both}
 .revealed .hint{animation:fadeIn .6s var(--ease) .6s both}
 
+/* ---------- Mühürleme durumları ---------- */
+/* 4) Mektup aşağı doğru çekilir */
+.closing .note{animation:sink .6s var(--ease) both}
+.closing .next,.closing .hint{animation:fadeOut .4s var(--ease) both;pointer-events:none}
+/* 5) Açık zarf geri gelir; kâğıt iner, kapak kapanır, mühür oturur */
+.sealing .intro-block,.sealing .open-btn{display:none}
+.sealing .envelope-wrap{animation:rise .7s var(--ease) both}
+.sealing .envelope{cursor:default}
+.sealing .letter-peek{transition:transform .6s var(--ease)}
+.sealing .flap{transition:transform .8s var(--ease) .45s,z-index 0s .85s}
+.sealing .seal{transition:opacity .5s var(--ease) 1.2s,transform .5s var(--ease) 1.2s}
+.sealing .hint{transition:opacity .8s var(--ease) 1.7s}
+.hint:focus{outline:none}
+
 @keyframes rise{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+@keyframes sink{to{opacity:0;transform:translateY(26px)}}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes fadeOut{from{opacity:1}to{opacity:0}}
 
 /* Küçük ekranlar (iPhone SE vb.) */
 @media (max-height:640px){
@@ -226,8 +242,8 @@ h1{font-size:clamp(30px,8vw,42px);font-weight:400;letter-spacing:.02em;line-heig
 Bu sayfa, zarfın açılışından sonra mektubun rahatça okunacağı şekilde tasarlandı. Metni birlikte netleştirdiğimizde bu alanı gerçek mektubunla değiştirebiliriz.</p>
     <p class="sign">Sana, her zaman…</p>
   </article>
-  <button class="btn next" id="nextBtn">Mektubu kapat · Devamı için ikinci NFC</button>
-  <div class="hint" id="hint" aria-live="polite">Zarfın üzerindeki mühür, hikâyenin ilk işareti.</div>
+  <button class="btn next" id="nextBtn">Mektubu mühürle</button>
+  <div class="hint" id="hint" tabindex="-1" aria-live="polite">Zarfın üzerindeki mühür, hikâyenin ilk işareti.</div>
 </section>
 </main>
 <script>
@@ -259,11 +275,32 @@ function openLetter(){
 openBtn.addEventListener('click',openLetter);
 document.getElementById('envelope').addEventListener('click',openLetter);
 
-nextBtn.addEventListener('click',()=>{
-  hint.textContent='Bu ilk sayfa burada sona eriyor. İkinci mektup, ikinci NFC kartı okutulduğunda açılacak.';
-  nextBtn.textContent='İlk mektup tamamlandı';
+// Mektubu mühürle: mektup zarfa geri girer, kapak kapanır, mühür yerine oturur
+function sealLetter(){
   nextBtn.disabled=true;
-});
+  openBtn.setAttribute('aria-expanded','false');
+  const finalText='Bu ilk sayfa burada sona eriyor. İkinci mektup, ikinci NFC kartı okutulduğunda açılacak.';
+
+  // Zarfı açık hâliyle geri getir
+  const showOpenEnvelope=()=>{
+    scene.classList.remove('closing','revealed','leaving');
+    scene.classList.add('sealing');
+    hint.textContent=finalText;
+    window.scrollTo({top:0,behavior:'auto'});
+  };
+  // Kâğıt iner, kapak kapanır, mühür belirir
+  const closeEnvelope=()=>{
+    scene.classList.remove('opening');
+    hint.focus({preventScroll:true});
+  };
+
+  if(reduceMotion){ showOpenEnvelope(); closeEnvelope(); return; }
+  scene.classList.add('closing');
+  setTimeout(showOpenEnvelope,600);
+  setTimeout(closeEnvelope,1350);
+}
+
+nextBtn.addEventListener('click',sealLetter);
 </script>
 </body>
 </html>
