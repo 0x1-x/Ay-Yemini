@@ -45,6 +45,8 @@ function sealLetter(){
   const closeEnvelope=()=>{
     scene.classList.remove('opening');
     hint.focus({preventScroll:true});
+    // Son mektupta mühürden sonra final sahnesi başlar
+    if(finale) setTimeout(startFinale,reduceMotion?0:3600);
   };
 
   if(reduceMotion){ showOpenEnvelope(); closeEnvelope(); return; }
@@ -54,3 +56,18 @@ function sealLetter(){
 }
 
 nextBtn.addEventListener('click',sealLetter);
+
+// Final sahnesi: dolunay, kapaklı saat ve 04:38 (yalnızca #finale olan sayfada)
+const finale=document.getElementById('finale');
+function startFinale(){
+  const show=()=>{
+    scene.hidden=true;
+    finale.hidden=false;
+    finale.classList.add('play');
+    window.scrollTo({top:0,behavior:'auto'});
+    finale.focus({preventScroll:true});
+  };
+  if(reduceMotion){ show(); return; }
+  scene.classList.add('fade-away');
+  setTimeout(show,900);
+}
