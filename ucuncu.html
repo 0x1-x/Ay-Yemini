@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#10100f">
+<title>Ay Yemini — Üçüncü Mektup</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+<section class="scene" id="scene"
+  data-hint-reading="Ay Yemini’nin üçüncü mektubu."
+  data-hint-sealed="Bu üçüncü sayfa burada sona eriyor.">
+  <div class="intro-block">
+    <div class="eyebrow">Ay Yemini · Mektup III</div>
+    <div class="moon" aria-hidden="true"></div>
+    <h1>Üçüncü mektubun başlığı</h1>
+    <p class="intro">Giriş cümlesi buraya gelecek.<br>İkinci satır buraya gelecek.</p>
+  </div>
+  <div class="envelope-wrap" id="envelopeWrap" aria-hidden="true">
+    <div class="envelope" id="envelope">
+      <div class="letter-peek"></div>
+      <div class="flap"></div>
+      <div class="seal">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#c5a36a" d="M15.2 3.4A9 9 0 1 0 20.6 17 7.4 7.4 0 0 1 15.2 3.4Z"/></svg>
+      </div>
+      <div class="envelope-label">YALNIZCA SANA</div>
+    </div>
+  </div>
+  <button class="btn open-btn" id="openBtn" aria-controls="note" aria-expanded="false">Mektubu aç</button>
+  <article class="note" id="note" tabindex="-1" aria-labelledby="noteTitle">
+    <div class="small">Ay Yemini · Üçüncü Mektup</div>
+    <h2 id="noteTitle">Mektup başlığı</h2>
+    <div class="rule" aria-hidden="true"></div>
+    <p id="letterText">Buraya üçüncü mektubun asıl metnini yerleştireceğiz.
+
+Bu sayfa, zarfın açılışından sonra mektubun rahatça okunacağı şekilde tasarlandı. Metni birlikte netleştirdiğimizde bu alanı gerçek mektubunla değiştirebiliriz.</p>
+    <p class="sign">Sana, her zaman…</p>
+  </article>
+  <button class="btn next" id="nextBtn">Mektubu mühürle</button>
+  <div class="hint" id="hint" tabindex="-1" aria-live="polite">Zarfın üzerindeki mühür, hikâyenin üçüncü işareti.</div>
+</section>
+</main>
+<script src="script.js"></script>
+</body>
+</html>
