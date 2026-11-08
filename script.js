@@ -66,8 +66,42 @@ function startFinale(){
     finale.classList.add('play');
     window.scrollTo({top:0,behavior:'auto'});
     finale.focus({preventScroll:true});
+    if(!reduceMotion) spinHands();
   };
   if(reduceMotion){ show(); return; }
   scene.classList.add('fade-away');
   setTimeout(show,900);
+}
+
+// Akrep ve yelkovan: kapak açıldıktan sonra hızla döner, yavaşlar ve 04:38'de durur.
+// Yelkovan 38 dk → 228°, akrep 4 sa 38 dk → 139°; akrep yelkovanın 1/12 hızıyla döner.
+function spinHands(){
+  const handM=document.getElementById('handM');
+  const handH=document.getElementById('handH');
+  const END_M=228, END_H=139;
+  const SPEED=600;          // derece/saniye (yaklaşık 0,6 sn'de bir tur)
+  const FAST=1.4;           // sabit hızlı dönüş süresi (sn)
+  const SLOW=4.4;           // yavaşlayarak durma süresi (sn)
+  const TOTAL=SPEED*(FAST+SLOW/2); // toplam yelkovan yolu: 2160° = 6 tur
+  const DELAY=5600;         // kapağın açılmasının bitişi (ms)
+  const set=(travelled)=>{
+    const left=TOTAL-travelled;
+    handM.setAttribute('transform',`rotate(${END_M-left} 120 160)`);
+    handH.setAttribute('transform',`rotate(${END_H-left/12} 120 160)`);
+  };
+  set(0);
+  setTimeout(()=>{
+    let t0=null;
+    const frame=(now)=>{
+      if(t0===null) t0=now;
+      const t=(now-t0)/1000;
+      let d;
+      if(t<FAST) d=SPEED*t;
+      else if(t<FAST+SLOW){ const u=t-FAST; d=SPEED*FAST+SPEED*u-SPEED*u*u/(2*SLOW); }
+      else d=TOTAL;
+      set(d);
+      if(d<TOTAL) requestAnimationFrame(frame);
+    };
+    requestAnimationFrame(frame);
+  },DELAY);
 }

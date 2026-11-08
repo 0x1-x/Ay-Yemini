@@ -230,9 +230,7 @@ h1{font-size:clamp(30px,8vw,42px);font-weight:400;letter-spacing:.02em;line-heig
 .watch{position:relative;width:min(62vw,230px);margin:0 auto;translate:13% 0;perspective:900px;filter:drop-shadow(0 18px 30px #000c)}
 .watch-face{display:block;width:100%;height:auto}
 .numerals{font:400 11.5px var(--serif);letter-spacing:.02em}
-.hand{transform-box:view-box;transform-origin:120px 160px}
-.hand-h{transform:rotate(139deg)}   /* 4 × 30° + 38 × 0,5° */
-.hand-m{transform:rotate(228deg)}   /* 38 × 6° */
+/* İbreler SVG transform özniteliğiyle döner (script.js); son hâl 04:38 */
 .watch-lid{
   position:absolute;left:8.333%;top:20.69%;width:83.333%;height:68.966%;border-radius:50%;
   transform-origin:left center;transform:rotateY(-104deg);
@@ -251,10 +249,8 @@ h1{font-size:clamp(30px,8vw,42px);font-weight:400;letter-spacing:.02em;line-heig
 .finale.play .finale-moon:before{animation:moonFill 3.2s cubic-bezier(.45,0,.3,1) 1.1s both}
 .finale.play .watch{animation:rise 1.2s var(--ease) 3s both,watchShift 1.2s cubic-bezier(.5,0,.2,1) 4.4s both}
 .finale.play .watch-lid{animation:lidOpen 1.2s cubic-bezier(.5,0,.2,1) 4.4s both}
-.finale.play .hand-h{animation:spinH 5.6s cubic-bezier(.08,.62,.22,1) 5.1s both}
-.finale.play .hand-m{animation:spinM 5.6s cubic-bezier(.08,.62,.22,1) 5.1s both}
-.finale.play .finale-time{animation:fadeIn 1s var(--ease) 11s both}
-.finale.play .finale-text{animation:rise 1.4s var(--ease) 11.6s both}
+.finale.play .finale-time{animation:fadeIn 1s var(--ease) 12s both}
+.finale.play .finale-text{animation:rise 1.4s var(--ease) 12.6s both}
 
 @keyframes moonFill{
   from{-webkit-mask-position:-144px -166px;mask-position:-144px -166px}
@@ -262,9 +258,6 @@ h1{font-size:clamp(30px,8vw,42px);font-weight:400;letter-spacing:.02em;line-heig
 @keyframes lidOpen{from{transform:rotateY(0)}}
 /* Kapak açılırken saat hafifçe sağa kayar, kompozisyon ortada kalır */
 @keyframes watchShift{from{translate:0 0}}
-/* Yelkovan 8 tam tur atar; akrep onun 1/12 hızıyla 240° döner */
-@keyframes spinM{from{transform:rotate(-2652deg)}}
-@keyframes spinH{from{transform:rotate(-101deg)}}
 
 @media (max-height:640px){
   .finale-moon{margin-bottom:14px}
