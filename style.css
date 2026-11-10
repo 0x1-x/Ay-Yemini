@@ -247,12 +247,32 @@ h1{font-size:clamp(30px,8vw,42px);font-weight:400;letter-spacing:.02em;line-heig
   display:grid;place-items:center;
 }
 .watch-lid svg{width:34%;height:34%;opacity:.8}
-.finale-time{min-height:1.4em;font:500 12px var(--sans);letter-spacing:.38em;color:var(--gold);margin:22px 0 10px;padding-left:.38em}
+.finale-time{min-height:1.4em;font:500 12px var(--sans);letter-spacing:.38em;color:var(--gold);margin:22px 0 12px;padding-left:.38em;display:flex;align-items:center;justify-content:center;gap:14px}
+/* Saatin iki yanında ince altın çizgiler */
+.finale-time:before,.finale-time:after{content:"";width:34px;height:1px;background:linear-gradient(90deg,transparent,#c5a36a99)}
+.finale-time:after{background:linear-gradient(90deg,#c5a36a99,transparent);margin-left:-.38em}
+.finale-time:empty{visibility:hidden}
 .finale-text{font-style:italic;font-size:clamp(19px,5.4vw,23px);line-height:1.5;color:var(--text);max-width:310px;margin:0 auto}
 .finale.no-moon .finale-text{font-size:clamp(16px,4.4vw,18px);color:var(--muted)}
 .finale-time,.finale-text{opacity:0;transform:translateY(10px);transition:opacity 1s var(--ease),transform 1.4s var(--ease)}
 .finale-text{transition-delay:.6s}
 .finale.done .finale-time,.finale.done .finale-text{opacity:1;transform:none}
+
+/* Son cümle (gelecek): soluk altın tırnaklar, kelime kelime beliren yazı, altında dolunay süsü */
+.finale .finale-quote{opacity:1;transform:none;position:relative;padding:0 18px;font-size:clamp(21px,6vw,25px);line-height:1.45;letter-spacing:.01em}
+.finale-quote:before,.finale-quote:after{
+  position:absolute;font:400 54px/1 var(--serif);color:var(--gold);opacity:0;transition:opacity 1.4s var(--ease) .4s;
+}
+.finale-quote:before{content:"“";left:-6px;top:-18px}
+.finale-quote:after{content:"”";right:-6px;bottom:-34px}
+.finale.done .finale-quote:before,.finale.done .finale-quote:after{opacity:.4}
+.finale-quote .w{display:inline-block;opacity:0;transform:translateY(6px);filter:blur(3px);transition:opacity 1s var(--ease),transform 1.2s var(--ease),filter 1.2s var(--ease);transition-delay:calc(.7s + var(--i) * .22s)}
+.finale.done .finale-quote .w{opacity:1;transform:none;filter:none}
+.finale-ornament{display:flex;align-items:center;justify-content:center;gap:12px;margin:30px auto 0;opacity:0;transition:opacity 1.4s var(--ease) 2.6s}
+.finale-ornament:before,.finale-ornament:after{content:"";width:46px;height:1px;background:linear-gradient(90deg,transparent,#c5a36a80)}
+.finale-ornament:after{background:linear-gradient(90deg,#c5a36a80,transparent)}
+.finale-ornament span{width:7px;height:7px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#f8efd6,#c5a36a);box-shadow:0 0 10px #c5a36a88}
+.finale.done .finale-ornament{opacity:1}
 
 /* Oynatma sırası */
 .finale.play .finale-moon{animation:fadeIn 1.2s var(--ease) both}

@@ -286,6 +286,12 @@ function startFinale(){
   const timeEl=document.getElementById('finaleTime');
   const textEl=document.getElementById('finaleText');
   if(!textEl.textContent.trim()) textEl.textContent=sealedHint;
+  // Son cümle: kelimeler tek tek belirsin
+  if(textEl.classList.contains('finale-quote')){
+    const words=textEl.textContent.trim().split(/\s+/);
+    textEl.setAttribute('aria-label',words.join(' '));
+    textEl.innerHTML=words.map((w,i)=>`<span class="w" style="--i:${i}" aria-hidden="true">${w}</span>`).join(' ');
+  }
   buildWatch(watch,mode==='now');
   if(!hasMoon) finale.classList.add('no-moon');
 
@@ -316,8 +322,8 @@ function startFinale(){
       });
       return dur;
     }
-    if(mode==='past'){
-      // Geçmiş: ibreler bugünkü saatten geriye döner (ilk ana geri sarılır),
+    if(mode==='past' && !finale.dataset.time){
+      // Geçmiş (saat verilmemişse): ibreler bugünkü saatten geriye döner (ilk ana geri sarılır),
       // kısa bir duraksamadan sonra ileri akar ve bugünkü saatte durur.
       const nowAngles=(ms=0)=>{ const d=new Date(Date.now()+ms); return anglesFor(d.getHours(),d.getMinutes(),d.getSeconds()); };
       if(reduceMotion){ setHands(nowAngles()); finish(); return; }
