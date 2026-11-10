@@ -462,7 +462,10 @@ main{position:relative;z-index:1}
 .era-past{-webkit-mask:radial-gradient(circle 10px at 15px 8px,transparent 9.5px,#000 10.5px);mask:radial-gradient(circle 10px at 15px 8px,transparent 9.5px,#000 10.5px)}
 .era-now{-webkit-mask:linear-gradient(90deg,#000 50%,transparent 50%);mask:linear-gradient(90deg,#000 50%,transparent 50%)}
 .era-future{-webkit-mask:linear-gradient(90deg,#000 50%,transparent 50%),radial-gradient(ellipse 31% 50% at 50% 50%,#000 98%,transparent 100%);mask:linear-gradient(90deg,#000 50%,transparent 50%),radial-gradient(ellipse 31% 50% at 50% 50%,#000 98%,transparent 100%)}
-.entry-go{display:inline-block;text-decoration:none;margin-top:26px;letter-spacing:.24em}
+.entry-go{display:inline-block;text-decoration:none;margin-top:14px;letter-spacing:.24em}
+/* Müzik ilk kez başlayınca beliren not; yer önceden ayrılır, sayfa zıplamaz */
+.music-note{max-width:290px;margin:0 auto;min-height:3.2em;font:italic 14px/1.6 var(--serif);color:var(--muted);opacity:0;transform:translateY(6px);transition:opacity 1.2s var(--ease),transform 1.2s var(--ease)}
+.music-note.shown{opacity:.9;transform:none}
 
 /* ---------- Müzik çalar widget'ı ----------
    .is-open: alttaki kart; .is-bubble: kapak fotoğraflı, sürüklenebilir yuvarlak */

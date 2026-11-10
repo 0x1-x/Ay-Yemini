@@ -87,6 +87,10 @@
 
   audio.addEventListener('ended',next);
   audio.addEventListener('play',render);
+  // Giriş sayfası: müzik ilk kez başladığında, kartlar arasında müziğin
+  // duracağını anlatan satır yavaşça belirir
+  const musicNote=document.getElementById('musicNote');
+  if(musicNote) audio.addEventListener('play',()=>musicNote.classList.add('shown'),{once:true});
   audio.addEventListener('pause',render);
   let lastSave=0;
   audio.addEventListener('timeupdate',()=>{
