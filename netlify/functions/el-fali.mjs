@@ -1,12 +1,14 @@
 /* =========================================================
-   El falı — avuç fotoğrafını Claude'a gönderir, Türkçe yorum döndürür.
-   - API anahtarı Netlify ortam değişkeninden okunur: ANTHROPIC_API_KEY
+   El falı — avuç fotoğrafını Gemini'ye gönderir, Türkçe yorum döndürür.
+   - API anahtarı Netlify ortam değişkeninden okunur: GEMINI_API_KEY
+   - Model isteğe bağlı olarak GEMINI_MODEL ile değiştirilebilir.
    - Yalnızca bu sitenin sayfalarından gelen istekler kabul edilir.
    - Yanıt sabit bir JSON şemasıyla gelir (el_mi, mesaj, hayat, kalp, akil, kader, genel).
    ========================================================= */
-import Anthropic from "@anthropic-ai/sdk";
+import { GoogleGenAI, ApiError } from "@google/genai";
 
-const client = new Anthropic(); // ANTHROPIC_API_KEY ortam değişkenini kullanır
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const MODEL = process.env.GEMINI_MODEL || "gemini-3.8-flash";
 
 const MAX_IMAGE_CHARS = 2_500_000; // ~1.8 MB'lık JPEG (base64)
 
@@ -53,6 +55,10 @@ function allowedOrigin(req) {
 export default async (req) => {
   if (req.method !== "POST") return json(405, { hata: "Yalnızca POST kabul edilir." });
   if (!allowedOrigin(req)) return json(403, { hata: "Bu istek kabul edilmedi." });
+  if (!process.env.GEMINI_API_KEY) {
+    console.error("GEMINI_API_KEY tanımlı değil");
+    return json(500, { hata: "Fal servisi henüz ayarlanmadı." });
+  }
 
   let body;
   try { body = await req.json(); } catch { return json(400, { hata: "Geçersiz istek." }); }
@@ -62,48 +68,44 @@ export default async (req) => {
   }
 
   try {
-    const response = await client.beta.messages.create({
-      model: "claude-opus-5-5",
-      max_tokens: 4000,
-      betas: ["server-side-fallback-2026-07-01"],
-      fallbacks: "default", // güvenlik nedeniyle reddedilirse Anthropic'in önerdiği modelde yeniden dener
-      output_config: {
-        effort: "low", // kısa bir yorum: beklemeyi kısaltır
-        format: { type: "json_schema", schema: SCHEMA }
-      },
-      system: SYSTEM,
-      messages: [
+    const response = await ai.models.generateContent({
+      model: MODEL,
+      contents: [
         {
           role: "user",
-          content: [
-            { type: "image", source: { type: "base64", media_type: "image/jpeg", data: image } },
-            { type: "text", text: "Bu avucun falına bakar mısın?" }
+          parts: [
+            { inlineData: { mimeType: "image/jpeg", data: image } },
+            { text: "Bu avucun falına bakar mısın?" }
           ]
         }
-      ]
+      ],
+      config: {
+        systemInstruction: SYSTEM,
+        responseMimeType: "application/json",
+        responseJsonSchema: SCHEMA,
+        maxOutputTokens: 4000
+      }
     });
 
-    if (response.stop_reason === "refusal") {
+    // Güvenlik filtresi istemi ya da yanıtı durdurduysa metin boş gelir
+    const text = response.text;
+    if (response.promptFeedback?.blockReason || !text) {
       return json(422, { hata: "Bu fotoğrafla fal bakılamadı. Başka bir fotoğraf dener misin?" });
     }
-    const text = response.content.find((b) => b.type === "text")?.text;
-    if (!text) return json(502, { hata: "Yorum alınamadı. Biraz sonra tekrar dene." });
     return json(200, JSON.parse(text));
   } catch (error) {
-    if (error instanceof Anthropic.AuthenticationError) {
-      console.error("ANTHROPIC_API_KEY eksik ya da geçersiz");
-      return json(500, { hata: "Fal servisi henüz ayarlanmadı." });
-    }
-    if (error instanceof Anthropic.RateLimitError) {
-      return json(429, { hata: "Şu an çok yoğun. Birkaç dakika sonra tekrar dene." });
-    }
-    if (error instanceof Anthropic.BadRequestError) {
-      console.error("Hatalı istek:", error.message);
-      return json(400, { hata: "Fotoğraf işlenemedi. Başka bir fotoğraf dener misin?" });
-    }
-    if (error instanceof Anthropic.APIError) {
-      console.error(`API hatası ${error.status}:`, error.message);
+    if (error instanceof ApiError) {
+      console.error(`Gemini API hatası ${error.status}:`, error.message);
+      if (error.status === 429) return json(429, { hata: "Şu an çok yoğun. Birkaç dakika sonra tekrar dene." });
+      if (error.status === 401 || error.status === 403 || /API key/i.test(error.message)) {
+        return json(500, { hata: "Fal servisi henüz ayarlanmadı." });
+      }
+      if (error.status === 400) return json(400, { hata: "Fotoğraf işlenemedi. Başka bir fotoğraf dener misin?" });
       return json(502, { hata: "Fal servisine ulaşılamadı. Biraz sonra tekrar dene." });
+    }
+    if (error instanceof SyntaxError) {
+      console.error("Yanıt JSON olarak okunamadı");
+      return json(502, { hata: "Yorum alınamadı. Biraz sonra tekrar dene." });
     }
     console.error(error);
     return json(500, { hata: "Beklenmedik bir hata oluştu." });
