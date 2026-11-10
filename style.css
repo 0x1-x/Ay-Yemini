@@ -386,6 +386,34 @@ html.not-phone body:after{
 @keyframes slotBlink{50%{border-bottom-color:#c5a36a44}}
 @keyframes shake{20%{transform:translateX(-7px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(2px)}}
 
+/* ---------- Mührü basılı tutarak kırmak ---------- */
+.envelope,.open-btn{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+.envelope{touch-action:none}
+.open-btn{letter-spacing:.16em;padding:13px 20px}
+.hold-ring{position:absolute;z-index:5;left:50%;top:81px;width:64px;height:64px;margin-left:-32px;pointer-events:none;transition:opacity .4s var(--ease)}
+.hold-ring svg{width:100%;height:100%;transform:rotate(-90deg);overflow:visible}
+.hold-ring circle{fill:none;stroke-width:1.6}
+.ring-track{stroke:#c5a36a00;transition:stroke .4s}
+.ring-fill{stroke:var(--gold);stroke-linecap:round;filter:drop-shadow(0 0 4px #c5a36a99)}
+.hold-ring.releasing .ring-fill{transition:stroke-dashoffset .5s var(--ease)}
+.holding .ring-track{stroke:#c5a36a33}
+.holding .seal{transform:scale(.96);transition:transform 1.3s var(--ease)}
+.holding .envelope{transform:scale(.99)}
+.seal-broken .seal:not(.seal-shard){opacity:0;transition:none}
+.seal-broken .hold-ring,.sealing .hold-ring{opacity:0}
+/* Kırılan mühür: düzensiz bir çizgiden ikiye ayrılır */
+.seal-shard{pointer-events:none;transition:none}
+.seal-shard-left{clip-path:polygon(0 0,52% 0,44% 22%,56% 41%,46% 60%,55% 79%,48% 100%,0 100%);animation:shardLeft .8s cubic-bezier(.3,0,.3,1) both}
+.seal-shard-right{clip-path:polygon(52% 0,100% 0,100% 100%,48% 100%,55% 79%,46% 60%,56% 41%,44% 22%);animation:shardRight .8s cubic-bezier(.3,0,.3,1) both}
+@keyframes shardLeft{to{transform:translate(-16px,14px) rotate(-16deg);opacity:0}}
+@keyframes shardRight{to{transform:translate(16px,18px) rotate(14deg);opacity:0}}
+
+/* ---------- Yıldızlar ---------- */
+main{position:relative;z-index:1}
+.sky{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.sky span{position:absolute;border-radius:50%;background:#efe6d6;opacity:var(--o);box-shadow:0 0 3px #efe6d6aa;animation:twinkle 9s ease-in-out infinite}
+@keyframes twinkle{50%{opacity:calc(var(--o) * .35)}}
+
 @media (prefers-reduced-motion:reduce){
   *,*:before,*:after{animation:none!important;transition:none!important}
 }

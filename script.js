@@ -2,6 +2,36 @@
    Zamandan bir iz — ortak sayfa kodu
    Her sayfa <html data-step="1|2|3" data-era="past|now|future"> taşır.
    ========================================================= */
+/* ---------- Yıldızlar: birlikte geçen her ay için bir yıldız ----------
+   Başlangıç tarihi <html data-since="YYYY-MM-DD">'den okunur. Sayı
+   telefonun tarihine göre hesaplanır; her ay bir yıldız eklenir.
+   Konumlar sabittir: aynı yıldız her açılışta aynı yerde durur. */
+(function(){
+  const since=(document.documentElement.dataset.since||'2026-10-17').split('-').map(Number);
+  const now=new Date();
+  let months=(now.getFullYear()-since[0])*12+(now.getMonth()-(since[1]-1));
+  if(now.getDate()<since[2]) months--;
+  const count=Math.max(1,Math.min(months+1,120)); // içinde bulunulan ay da sayılır
+  // Basit, tohumlu rastgele sayı üreteci: her yıldız hep aynı yere düşer
+  let seed=1710;
+  const rand=()=>{ seed=(seed*16807)%2147483647; return (seed-1)/2147483646; };
+  const sky=document.createElement('div');
+  sky.className='sky';
+  sky.setAttribute('aria-hidden','true');
+  for(let i=0;i<count;i++){
+    const s=document.createElement('span');
+    const size=1+rand()*1.4;
+    s.style.left=(4+rand()*92).toFixed(2)+'%';
+    s.style.top=(3+rand()*62).toFixed(2)+'%';
+    s.style.width=s.style.height=size.toFixed(2)+'px';
+    s.style.setProperty('--o',(0.35+rand()*0.4).toFixed(2));
+    s.style.animationDelay=(-rand()*8).toFixed(2)+'s';
+    s.style.animationDuration=(6+rand()*6).toFixed(2)+'s';
+    sky.appendChild(s);
+  }
+  document.body.prepend(sky);
+})();
+
 const root=document.documentElement;
 const STEP=Number(root.dataset.step||1);
 const scene=document.getElementById('scene');
@@ -56,8 +86,77 @@ function openLetter(){
   setTimeout(revealNote,1900);
 }
 
-openBtn.addEventListener('click',openLetter);
-document.getElementById('envelope').addEventListener('click',openLetter);
+/* ---------- Mührü kırmak: basılı tutunca halka dolar, mühür kırılır ----------
+   Zarfa ya da butona basılı tutulur. Klavye ve ekran okuyucuyla
+   butona basmak (tıklama, detail=0) mührü doğrudan kırar. */
+const envelope=document.getElementById('envelope');
+const sealEl=envelope.querySelector('.seal');
+const HOLD_MS=1300;
+const RING_C=2*Math.PI*27;
+const ring=document.createElement('div');
+ring.className='hold-ring';
+ring.setAttribute('aria-hidden','true');
+ring.innerHTML=`<svg viewBox="0 0 64 64"><circle class="ring-track" cx="32" cy="32" r="27"/><circle class="ring-fill" cx="32" cy="32" r="27" stroke-dasharray="${RING_C.toFixed(2)}" stroke-dashoffset="${RING_C.toFixed(2)}"/></svg>`;
+envelope.appendChild(ring);
+const ringFill=ring.querySelector('.ring-fill');
+let holdStart=null, holdRaf=null, holdDone=false;
+const holdNudge='Mührü kırmak için biraz daha basılı tut.';
+
+const setRing=(p)=>ringFill.setAttribute('stroke-dashoffset',(RING_C*(1-p)).toFixed(2));
+
+function breakSeal(){
+  if(opened||locked||holdDone) return;
+  holdDone=true;
+  setRing(1);
+  scene.classList.remove('holding');
+  scene.classList.add('seal-broken');
+  // Mührün iki parçası ayrılır
+  ['left','right'].forEach(side=>{
+    const shard=sealEl.cloneNode(true);
+    shard.className='seal seal-shard seal-shard-'+side;
+    envelope.appendChild(shard);
+  });
+  setTimeout(openLetter,reduceMotion?0:420);
+}
+
+function holdFrame(now){
+  const p=Math.min((now-holdStart)/HOLD_MS,1);
+  setRing(p);
+  if(p>=1){ holdStart=null; breakSeal(); return; }
+  holdRaf=requestAnimationFrame(holdFrame);
+}
+
+function holdBegin(e){
+  if(opened||locked||holdDone) return;
+  if(e.button!==undefined && e.button!==0) return;
+  e.preventDefault();
+  try{ e.currentTarget.setPointerCapture(e.pointerId); }catch(_){}
+  holdStart=performance.now();
+  ring.classList.remove('releasing');
+  if(hint.textContent===holdNudge) hint.textContent=scene.dataset.hintStart||'';
+  scene.classList.add('holding');
+  holdRaf=requestAnimationFrame(holdFrame);
+}
+
+function holdEnd(){
+  if(holdStart===null) return;
+  const p=(performance.now()-holdStart)/HOLD_MS;
+  holdStart=null;
+  cancelAnimationFrame(holdRaf);
+  scene.classList.remove('holding');
+  ring.classList.add('releasing');
+  setRing(0);
+  if(p<0.5){ if(!scene.dataset.hintStart) scene.dataset.hintStart=hint.textContent; hint.textContent=holdNudge; }
+}
+
+[envelope,openBtn].forEach(el=>{
+  el.addEventListener('pointerdown',holdBegin);
+  el.addEventListener('pointerup',holdEnd);
+  el.addEventListener('pointercancel',holdEnd);
+  el.addEventListener('contextmenu',e=>e.preventDefault());
+});
+// Klavye / ekran okuyucu: tıklama olayı işaretçi olmadan gelirse doğrudan kır
+openBtn.addEventListener('click',e=>{ if(e.detail===0) breakSeal(); });
 
 /* ---------- Mektubu mühürle ---------- */
 function sealLetter(){
@@ -65,7 +164,9 @@ function sealLetter(){
   openBtn.setAttribute('aria-expanded','false');
   // Zarfı açık hâliyle geri getir
   const showOpenEnvelope=()=>{
-    scene.classList.remove('closing','revealed','leaving');
+    scene.classList.remove('closing','revealed','leaving','seal-broken');
+    envelope.querySelectorAll('.seal-shard').forEach(s=>s.remove());
+    ring.hidden=true;
     scene.classList.add('sealing');
     hint.textContent=sealedHint;
     window.scrollTo({top:0,behavior:'auto'});
