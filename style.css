@@ -647,7 +647,10 @@ html[data-page="son"] main{padding-top:max(20px,env(safe-area-inset-top));paddin
 .cup-title small{display:block;font:12px var(--sans);color:var(--muted);margin-top:2px}
 .cup-arrow{width:10px;height:10px;border-right:1px solid var(--gold);border-bottom:1px solid var(--gold);transform:rotate(45deg);transition:transform .3s var(--ease);margin-right:4px}
 .cup.open .cup-arrow{transform:rotate(-135deg)}
-.cup-body{padding:0 16px 16px}
+.cup-body{display:grid;grid-template-rows:0fr;opacity:0;transition:grid-template-rows .5s var(--ease),opacity .4s var(--ease)}
+.cup.open .cup-body{grid-template-rows:1fr;opacity:1}
+.cup-inner{min-height:0;overflow:hidden;padding:0 16px;transition:padding .5s var(--ease)}
+.cup.open .cup-inner{padding-bottom:16px}
 .cup-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
 .cup-tabs [role=tab]{background:none;border:1px solid #c5a36a40;border-radius:20px;padding:8px 14px;min-height:36px;color:var(--muted);font:500 12px var(--sans);cursor:pointer}
 .cup-tabs [role=tab][aria-selected=true]{background:#c5a36a22;border-color:var(--gold);color:var(--text)}
@@ -702,7 +705,6 @@ html[data-page="son"] main{padding-top:max(20px,env(safe-area-inset-top));paddin
 .palm-item p{margin:8px 0 0;line-height:1.7;color:#e6dcc8}
 .palm-summary{border-color:var(--gold-soft);background:linear-gradient(180deg,#221d16cc,#17151399)}
 .palm-summary p{font-style:italic;font-size:17px;color:var(--text)}
-.palm-note{font:11px/1.6 var(--sans);color:#8f846f;margin:10px 0 0}
 
 @media (prefers-reduced-motion:reduce){
   *,*:before,*:after{animation:none!important;transition:none!important}

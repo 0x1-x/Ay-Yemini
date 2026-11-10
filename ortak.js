@@ -7,11 +7,6 @@ window.ZBI={
   KEY_PALM:'zamandan-bir-iz:elfali'
 };
 
-if(new URLSearchParams(location.search).has('sifirla')){
-  try{ Object.values(window.ZBI).forEach(k=>localStorage.removeItem(k)); }catch(e){}
-  history.replaceState(null,'',location.pathname);
-}
-
 (function(){
   const since=(document.documentElement.dataset.since||'2026-10-17').split('-').map(Number);
   const now=new Date();

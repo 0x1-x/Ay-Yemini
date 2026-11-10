@@ -17,7 +17,6 @@
       .then(j=>normalize((j&&j.syncedLyrics)||''))
       .catch(()=>'');
   }
-  const OFFSET=Number(sing.dataset.kaydir||0);
 
   const audio=new Audio(sing.dataset.src);
   audio.preload='auto';
@@ -50,7 +49,7 @@
       const times=[...row.matchAll(/\[(\d+):(\d+(?:\.\d+)?)\]/g)];
       if(!times.length) return;
       const text=row.replace(/\[[^\]]*\]/g,'').trim();
-      times.forEach(m=>out.push({t:Math.max(0,Number(m[1])*60+Number(m[2])+OFFSET),text}));
+      times.forEach(m=>out.push({t:Number(m[1])*60+Number(m[2]),text}));
     });
     return out.sort((a,b)=>a.t-b.t);
   }

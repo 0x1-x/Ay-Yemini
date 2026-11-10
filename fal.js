@@ -196,16 +196,16 @@
         <span class="cup-title">${esc(cup.baslik)}${cup.tarih?`<small>${esc(cup.tarih)}</small>`:''}</span>
         <span class="cup-arrow" aria-hidden="true"></span>
       </button>
-      <div class="cup-body" id="${tabsId}" hidden>
+      <div class="cup-body" id="${tabsId}" inert><div class="cup-inner">
         <div class="cup-tabs" role="tablist" aria-label="${esc(cup.baslik)} yorumları">
           ${cup.yorumlar.map((y,yi)=>`<button type="button" role="tab" aria-selected="${yi===0}" data-y="${yi}">${esc(y.kim)}</button>`).join('')}
         </div>
         <div class="cup-text" role="tabpanel" aria-live="polite">${paras(cup.yorumlar[0]?.metin||'')}</div>
-      </div>`;
+      </div></div>`;
     const head=el.querySelector('.cup-head'), body=el.querySelector('.cup-body'), text=el.querySelector('.cup-text');
     head.addEventListener('click',()=>{
       const open=head.getAttribute('aria-expanded')!=='true';
-      head.setAttribute('aria-expanded',open); body.hidden=!open; el.classList.toggle('open',open);
+      head.setAttribute('aria-expanded',open); body.inert=!open; el.classList.toggle('open',open);
     });
     el.querySelectorAll('.cup-tabs [role=tab]').forEach(b=>b.addEventListener('click',()=>{
       el.querySelectorAll('.cup-tabs [role=tab]').forEach(x=>x.setAttribute('aria-selected',x===b));
