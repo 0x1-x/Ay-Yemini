@@ -451,6 +451,71 @@ main{position:relative;z-index:1}
 }
 [data-era="future"] #letterText:before{--rule:#8a6f4a2c}
 
+/* ---------- Giriş sayfası ---------- */
+.entry{width:min(100%,420px);text-align:center;outline:none}
+.entry[hidden]{display:none}
+.entry.from-gate{animation:fadeIn 1.6s var(--ease) both}
+.entry .moon{margin-top:6px}
+.entry h1{margin-top:0}
+.entry .intro{margin-bottom:22px}
+.eras{list-style:none;display:flex;justify-content:center;gap:clamp(22px,8vw,38px);margin:0 0 30px;padding:0}
+.eras li{display:flex;flex-direction:column;align-items:center;gap:9px;font:500 10px/1 var(--sans);letter-spacing:.24em;text-transform:uppercase;color:var(--muted)}
+.era-moon{width:22px;height:22px;border-radius:50%;position:relative;background:radial-gradient(circle at 30% 45%,#f8efd6,#c5a36a 70%,#8a7552);filter:drop-shadow(0 0 6px #c5a36a40)}
+.era-past{-webkit-mask:radial-gradient(circle 10px at 15px 8px,transparent 9.5px,#000 10.5px);mask:radial-gradient(circle 10px at 15px 8px,transparent 9.5px,#000 10.5px)}
+.era-now{-webkit-mask:linear-gradient(90deg,#000 50%,transparent 50%);mask:linear-gradient(90deg,#000 50%,transparent 50%)}
+.era-future{-webkit-mask:linear-gradient(90deg,#000 50%,transparent 50%),radial-gradient(ellipse 31% 50% at 50% 50%,#000 98%,transparent 100%);mask:linear-gradient(90deg,#000 50%,transparent 50%),radial-gradient(ellipse 31% 50% at 50% 50%,#000 98%,transparent 100%)}
+.entry-go{display:inline-block;text-decoration:none;margin-top:26px;letter-spacing:.24em}
+
+/* ---------- Müzik çalar (giriş sayfası) ---------- */
+.player{
+  margin:0 auto;width:min(100%,340px);padding:22px 22px 18px;border:1px solid #c5a36a40;border-radius:3px;
+  background:linear-gradient(180deg,#1d1a16cc,#151412cc);box-shadow:0 18px 40px #0008,inset 0 1px 0 #c5a36a14;
+}
+.pl-eyebrow{font:500 10px/1.5 var(--sans);letter-spacing:.28em;text-transform:uppercase;color:var(--gold);opacity:.85}
+.pl-title{font-size:20px;line-height:1.35;margin:8px 0 2px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pl-artist{font:13px/1.5 var(--sans);color:var(--muted);min-height:1.5em}
+.pl-bar{position:relative;height:16px;margin:14px 0 2px;cursor:pointer;outline:none}
+.pl-bar:before{content:"";position:absolute;left:0;right:0;top:7.5px;height:1px;background:#c5a36a33}
+.pl-bar .pl-fill{position:absolute;left:0;top:7px;height:2px;width:0;background:var(--gold);box-shadow:0 0 6px #c5a36a88}
+.pl-bar .pl-fill:after{content:"";position:absolute;right:-4px;top:-3px;width:8px;height:8px;border-radius:50%;background:#e8d3a4}
+.pl-bar:focus-visible{outline:1px solid var(--gold);outline-offset:4px}
+.pl-times{display:flex;justify-content:space-between;font:11px/1 var(--sans);color:#8f846f;font-variant-numeric:tabular-nums}
+.pl-controls{display:flex;justify-content:center;align-items:center;gap:22px;margin:14px 0 10px}
+.pl-btn{-webkit-appearance:none;appearance:none;background:none;border:0;padding:0;width:44px;height:44px;display:grid;place-items:center;color:#e8d8b9;cursor:pointer;border-radius:50%;transition:background-color .25s,opacity .25s}
+.pl-btn svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+@media (hover:hover){.pl-btn:hover{background:#c5a36a14}}
+.pl-btn:focus-visible{outline:1px solid var(--gold);outline-offset:2px}
+.pl-btn:disabled{opacity:.3;cursor:default;background:none}
+.player .pl-play{width:58px;height:58px;border:1px solid var(--gold-soft)}
+.player .pl-play svg{width:24px;height:24px}
+.pl-play svg path{fill:currentColor;stroke:none}
+.is-playing .pl-play svg path{fill:none;stroke:currentColor;stroke-width:2}
+.pl-volume{display:flex;align-items:center;gap:8px}
+.pl-vol{flex:1;height:1px;background:#c5a36a33;position:relative}
+.pl-vol-fill{position:absolute;left:0;top:-.5px;height:2px;background:var(--gold-soft)}
+
+/* ---------- Küçük çalar (mektuplar) ---------- */
+html.has-mini main{padding-bottom:calc(max(28px,env(safe-area-inset-bottom)) + 76px)}
+.mini-player{
+  position:fixed;z-index:20;left:50%;bottom:max(12px,env(safe-area-inset-bottom));transform:translateX(-50%);
+  width:min(calc(100% - 24px),400px);display:flex;align-items:center;gap:6px;padding:6px 6px 6px 16px;
+  border:1px solid #c5a36a3a;border-radius:30px;background:#16141299;
+  -webkit-backdrop-filter:blur(14px) saturate(1.2);backdrop-filter:blur(14px) saturate(1.2);
+  box-shadow:0 10px 30px #0009;animation:fadeIn 1s var(--ease) both;
+}
+.mini-info{flex:1;min-width:0}
+.mini-player .pl-title{font-size:14px;margin:0 0 5px;color:var(--text)}
+.mini-track{height:1px;background:#c5a36a2a;position:relative}
+.mini-track .pl-fill{position:absolute;left:0;top:-.5px;height:2px;width:0;background:var(--gold-soft)}
+.mini-controls{display:flex;align-items:center}
+.mini-player .pl-btn{width:38px;height:38px}
+.mini-player .pl-btn svg{width:18px;height:18px}
+.mini-player .pl-play{border:1px solid #c5a36a66}
+@media (max-width:360px){
+  .mini-player{padding-left:12px;gap:2px}
+  .mini-player .pl-btn{width:34px;height:34px}
+}
+
 @media (prefers-reduced-motion:reduce){
   *,*:before,*:after{animation:none!important;transition:none!important}
 }

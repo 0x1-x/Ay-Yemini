@@ -1,37 +1,7 @@
 /* =========================================================
-   Zamandan bir iz — ortak sayfa kodu
-   Her sayfa <html data-step="1|2|3" data-era="past|now|future"> taşır.
+   Zamandan bir iz — mektup sayfalarının kodu
+   Her mektup <html data-step="1|2|3" data-era="past|now|future"> taşır.
    ========================================================= */
-/* ---------- Yıldızlar: birlikte geçen her ay için bir yıldız ----------
-   Başlangıç tarihi <html data-since="YYYY-MM-DD">'den okunur. Sayı
-   telefonun tarihine göre hesaplanır; her ay bir yıldız eklenir.
-   Konumlar sabittir: aynı yıldız her açılışta aynı yerde durur. */
-(function(){
-  const since=(document.documentElement.dataset.since||'2026-10-17').split('-').map(Number);
-  const now=new Date();
-  let months=(now.getFullYear()-since[0])*12+(now.getMonth()-(since[1]-1));
-  if(now.getDate()<since[2]) months--;
-  const count=Math.max(1,Math.min(months+1,120)); // içinde bulunulan ay da sayılır
-  // Basit, tohumlu rastgele sayı üreteci: her yıldız hep aynı yere düşer
-  let seed=1710;
-  const rand=()=>{ seed=(seed*16807)%2147483647; return (seed-1)/2147483646; };
-  const sky=document.createElement('div');
-  sky.className='sky';
-  sky.setAttribute('aria-hidden','true');
-  for(let i=0;i<count;i++){
-    const s=document.createElement('span');
-    const size=1+rand()*1.4;
-    s.style.left=(4+rand()*92).toFixed(2)+'%';
-    s.style.top=(3+rand()*62).toFixed(2)+'%';
-    s.style.width=s.style.height=size.toFixed(2)+'px';
-    s.style.setProperty('--o',(0.35+rand()*0.4).toFixed(2));
-    s.style.animationDelay=(-rand()*8).toFixed(2)+'s';
-    s.style.animationDuration=(6+rand()*6).toFixed(2)+'s';
-    sky.appendChild(s);
-  }
-  document.body.prepend(sky);
-})();
-
 const root=document.documentElement;
 const STEP=Number(root.dataset.step||1);
 const scene=document.getElementById('scene');
@@ -48,17 +18,12 @@ let opened=false;
 /* ---------- Sıra kilidi: kartlar yalnızca sırayla açılır ----------
    Telefon, açılan en son mektubun numarasını hatırlar. Depolama
    kullanılamazsa (ör. bazı gizli sekmeler) kilit devre dışı kalır. */
-const PROGRESS_KEY='zamandan-bir-iz:acilan';
+const PROGRESS_KEY=window.ZBI.KEY_PROGRESS;
 const storage={
   get(){ try{ return Number(localStorage.getItem(PROGRESS_KEY)||0); }catch(e){ return null; } },
   set(n){ try{ if(n>(Number(localStorage.getItem(PROGRESS_KEY))||0)) localStorage.setItem(PROGRESS_KEY,String(n)); }catch(e){} },
   clear(){ try{ localStorage.removeItem(PROGRESS_KEY); }catch(e){} }
 };
-// Hediyeden önce deneme yapabilmek için: adresin sonuna ?sifirla eklenirse ilerleme silinir
-if(new URLSearchParams(location.search).has('sifirla')){
-  storage.clear();
-  history.replaceState(null,'',location.pathname);
-}
 const ORDINAL=['','ilk','ikinci','üçüncü'];
 const progress=storage.get();
 const locked=STEP>1 && progress!==null && progress<STEP-1;
@@ -366,77 +331,4 @@ if(capsule){
     capsule.querySelector('.capsule-when').textContent=`Bu satır ${dateText}'de açılacak.`;
     capsule.querySelector('.capsule-count').textContent=`${days} gün kaldı`;
   }
-}
-
-/* ---------- Şifre ekranı (yalnızca #gate olan sayfada) ----------
-   Doğru tarih girilince zarf sahnesi açılır. Tarih kodda açık
-   yazılmaz; yalnızca kısa bir özeti (FNV-1a) karşılaştırılır. */
-const gate=document.getElementById('gate');
-if(gate){
-  const input=document.getElementById('dateInput');
-  const field=document.getElementById('dateField');
-  const slots=[...gate.querySelectorAll('.slot')];
-  const msg=document.getElementById('gateMsg');
-  const clue=document.getElementById('gateClue');
-  // İpuçları: 2. denemeden itibaren, yanlış sayısı arttıkça biraz daha belirginleşir
-  const clues=[
-    'İpucu: Gün, ay ve yıl olarak yaz.',
-    'İpucu: 2026 yılının ekim ayı.'
-  ];
-  let wrongCount=0, busy=false;
-
-  const digest=(str)=>{
-    let h=0x811c9dc5;
-    for(const c of str){ h^=c.charCodeAt(0); h=Math.imul(h,16777619)>>>0; }
-    return h.toString(16);
-  };
-  const render=()=>{
-    const n=input.value.length;
-    slots.forEach((s,i)=>{
-      s.classList.toggle('filled',i<n);
-      s.classList.toggle('current',i===n);
-    });
-  };
-  const unlock=()=>{
-    field.classList.add('right');
-    msg.textContent='';
-    input.blur();
-    setTimeout(()=>gate.classList.add('leaving'),reduceMotion?0:700);
-    setTimeout(()=>{
-      gate.hidden=true;
-      scene.hidden=false;
-      scene.classList.add('from-gate');
-      window.scrollTo({top:0,behavior:'auto'});
-      openBtn.focus({preventScroll:true});
-    },reduceMotion?0:1600);
-  };
-  const fail=()=>{
-    wrongCount++;
-    busy=true;
-    field.classList.add('wrong');
-    msg.textContent='Bu tarih değil.';
-    clue.textContent=clues[Math.min(wrongCount,clues.length)-1];
-    setTimeout(()=>{
-      field.classList.remove('wrong');
-      input.value='';
-      render();
-      busy=false;
-    },650);
-  };
-  const check=()=>{
-    if(input.value.length<8) return;
-    if(digest(input.value)===gate.dataset.key) unlock(); else fail();
-  };
-
-  input.addEventListener('input',()=>{
-    if(busy){ input.value=''; return; }
-    input.value=input.value.replace(/\D/g,'').slice(0,8);
-    if(input.value.length<8 && !field.classList.contains('wrong')) msg.textContent='';
-    render();
-    check();
-  });
-  input.addEventListener('keydown',(e)=>{ if(e.key==='Enter') check(); });
-  input.addEventListener('focus',()=>field.classList.add('focused'));
-  input.addEventListener('blur',()=>field.classList.remove('focused'));
-  render();
 }

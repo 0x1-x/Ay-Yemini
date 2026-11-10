@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="tr" data-since="2026-10-13" data-step="1" data-era="past">
+<html lang="tr" data-since="2026-10-13" data-kapi="gerekli" data-step="1" data-era="past">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -14,24 +14,7 @@
 </head>
 <body>
 <main>
-<section class="gate" id="gate" data-key="1d7b87d2">
-  <div class="gate-moon" aria-hidden="true"></div>
-  <h1 class="gate-title">Zamandan bir iz</h1>
-  <p class="gate-prompt" id="gatePrompt">O tarihi yaz.</p>
-  <div class="date-field" id="dateField">
-    <label class="sr-only" for="dateInput">Tarih: gün, ay ve yıl, yalnızca rakamlarla</label>
-    <input id="dateInput" class="date-input" type="text" inputmode="numeric" pattern="[0-9]*"
-      maxlength="8" autocomplete="off" autocorrect="off" spellcheck="false" aria-describedby="gatePrompt gateMsg">
-    <div class="slots" aria-hidden="true">
-      <span class="slot"></span><span class="slot"></span><span class="sep">.</span>
-      <span class="slot"></span><span class="slot"></span><span class="sep">.</span>
-      <span class="slot"></span><span class="slot"></span><span class="slot"></span><span class="slot"></span>
-    </div>
-  </div>
-  <p class="gate-msg" id="gateMsg" aria-live="polite"></p>
-  <p class="gate-clue" id="gateClue" aria-live="polite"></p>
-</section>
-<section class="scene" id="scene" hidden
+<section class="scene" id="scene"
   data-hint-reading=""
   data-hint-sealed="Bu ilk sayfa burada sona eriyor. İkinci mektup, ikinci NFC kartı okutulduğunda açılacak.">
   <div class="intro-block">
@@ -85,6 +68,9 @@ O yüzden iyi ki ergenleşmişiz, iyi ki çocuk olmuşuz, iyi ki varsın, iyi ki
   <p class="finale-text" id="finaleText"></p>
 </section>
 </main>
+<script src="/ortak.js"></script>
+<script src="/muzik/liste.js"></script>
+<script src="/muzik.js"></script>
 <script src="/script.js"></script>
 </body>
 </html>
