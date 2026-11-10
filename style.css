@@ -436,6 +436,20 @@ main{position:relative;z-index:1}
 .sky span{position:absolute;border-radius:50%;background:#efe6d6;opacity:var(--o);box-shadow:0 0 3px #efe6d6aa;animation:twinkle 9s ease-in-out infinite}
 @keyframes twinkle{50%{opacity:calc(var(--o) * .35)}}
 
+/* ---------- Çizgili mektup kâğıdı ----------
+   Silik çizgiler her satırın altına denk gelir (1lh = bir satır yüksekliği)
+   ve iki kenarda yavaşça kaybolur. */
+#letterText{position:relative}
+#letterText:before{
+  content:"";position:absolute;left:-10px;right:-10px;top:0;bottom:0;pointer-events:none;
+  --rule:#8a6f4a38;
+  background:repeating-linear-gradient(to bottom,transparent 0,transparent 26.5px,var(--rule) 26.5px,var(--rule) 27.5px,transparent 27.5px,transparent 31.45px);
+  background:repeating-linear-gradient(to bottom,transparent 0,transparent calc(1lh - 5px),var(--rule) calc(1lh - 5px),var(--rule) calc(1lh - 4px),transparent calc(1lh - 4px),transparent 1lh);
+  -webkit-mask:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);
+          mask:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);
+}
+[data-era="future"] #letterText:before{--rule:#8a6f4a2c}
+
 @media (prefers-reduced-motion:reduce){
   *,*:before,*:after{animation:none!important;transition:none!important}
 }
