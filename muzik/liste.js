@@ -11,10 +11,8 @@
 window.ZBI_KAPAK='/muzik/kapak.jpg';
 
 // Her temada tek şarkı vardır; şarkı bitince başa dönüp yeniden çalar.
-// Gerçek dosyalar yüklenene kadar deneme sesleri çalar.
-// Yüklenecek dosya adları: kor.mp3, dem.mp3, hos-geldin.mp3
 window.ZBI_LISTE={
-  past:  [ { baslik:'Kör',        sanatci:'Canfeza', dosya:'/muzik/ornek-1.mp3' } ], // → /muzik/kor.mp3
-  now:   [ { baslik:'Dem',        sanatci:'Canfeza', dosya:'/muzik/ornek-2.mp3' } ], // → /muzik/dem.mp3
-  future:[ { baslik:'Hoş geldin', sanatci:'Canfeza', dosya:'/muzik/ornek-3.mp3' } ]  // → /muzik/hos-geldin.mp3
+  past:  [ { baslik:'Kör',        sanatci:'Canfeza', dosya:'/muzik/kor.mp3' } ],
+  now:   [ { baslik:'Dem',        sanatci:'Canfeza', dosya:'/muzik/dem.mp3' } ],
+  future:[ { baslik:'Hoş geldin', sanatci:'Canfeza', dosya:'/muzik/hos-geldin.mp3' } ]
 };
