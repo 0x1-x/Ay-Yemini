@@ -5,12 +5,14 @@
    - Yalnızca bu sitenin sayfalarından gelen istekler kabul edilir.
    - Yanıt sabit bir JSON şemasıyla gelir (el_mi, mesaj, hayat, kalp, akil, kader, genel).
    ========================================================= */
-import { GoogleGenAI, ApiError } from "@google/genai";
+import { GoogleGenAI, ApiError, ThinkingLevel } from "@google/genai";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 const MODEL = process.env.GEMINI_MODEL || "gemini-3.8-flash";
 
 const MAX_IMAGE_CHARS = 2_500_000; // ~1.8 MB'lık JPEG (base64)
+// Netlify fonksiyonu ~30 sn'de kesilir; Gemini'ye ondan önce dolan bir süre tanı
+const GEMINI_TIMEOUT_MS = 22_000;
 
 const SCHEMA = {
   type: "object",
@@ -83,7 +85,14 @@ export default async (req) => {
         systemInstruction: SYSTEM,
         responseMimeType: "application/json",
         responseJsonSchema: SCHEMA,
-        maxOutputTokens: 4000
+        maxOutputTokens: 1500,
+        // Kısa bir yorum için uzun düşünmeye gerek yok: yanıt süresini kısaltır
+        thinkingConfig: { thinkingLevel: ThinkingLevel.MINIMAL },
+        // Süreyi sınırla; yoğunlukta en fazla bir kez, kısa bekleyerek yeniden dene
+        httpOptions: {
+          timeout: GEMINI_TIMEOUT_MS,
+          retryOptions: { attempts: 2, initialDelay: 1, maxDelay: 2 }
+        }
       }
     });
 
@@ -96,12 +105,19 @@ export default async (req) => {
   } catch (error) {
     if (error instanceof ApiError) {
       console.error(`Gemini API hatası ${error.status}:`, error.message);
-      if (error.status === 429) return json(429, { hata: "Şu an çok yoğun. Birkaç dakika sonra tekrar dene." });
+      if (error.status === 429 || error.status === 503) {
+        return json(503, { hata: "Fal servisi şu an çok yoğun. Birkaç dakika sonra tekrar dene." });
+      }
       if (error.status === 401 || error.status === 403 || /API key/i.test(error.message)) {
         return json(500, { hata: "Fal servisi henüz ayarlanmadı." });
       }
       if (error.status === 400) return json(400, { hata: "Fotoğraf işlenemedi. Başka bir fotoğraf dener misin?" });
       return json(502, { hata: "Fal servisine ulaşılamadı. Biraz sonra tekrar dene." });
+    }
+    // Gemini süre sınırı içinde yanıt vermedi
+    if (error?.name === "AbortError" || error?.name === "TimeoutError" || /timed? ?out|aborted/i.test(String(error?.message))) {
+      console.error("Gemini zaman aşımı");
+      return json(504, { hata: "Yorum beklenenden uzun sürdü. Birkaç dakika sonra tekrar dene." });
     }
     if (error instanceof SyntaxError) {
       console.error("Yanıt JSON olarak okunamadı");
