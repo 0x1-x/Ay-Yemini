@@ -168,7 +168,7 @@ function sealLetter(){
     envelope.querySelectorAll('.seal-shard').forEach(s=>s.remove());
     ring.hidden=true;
     scene.classList.add('sealing');
-    hint.textContent=sealedHint;
+    hint.textContent=''; // Kapanış cümlesi yalnızca saat sahnesinde, bir kez görünür
     window.scrollTo({top:0,behavior:'auto'});
   };
   // Kâğıt iner, kapak kapanır, mühür belirir; ardından saat sahnesi
