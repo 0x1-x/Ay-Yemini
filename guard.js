@@ -9,8 +9,8 @@
   // iPhone'da "Masaüstü sitesini iste" açıksa Safari kendini Mac olarak tanıtır
   var iPhoneAsDesktop=/Macintosh/.test(ua)&&navigator.maxTouchPoints>1&&shortSide<=540;
   var isPhone=(mobileUA||iPhoneAsDesktop)&&coarse&&shortSide<=540;
-  // Söz zamanlama aracı (/eslik?zamanla) bilgisayarda da açılabilsin
-  var timerTool=/[?&]zamanla/.test(location.search);
+  // Söz zamanlama ve düzenleme araçları (/eslik?zamanla, /eslik?duzenle) bilgisayarda da açılabilsin
+  var timerTool=/[?&](zamanla|duzenle)/.test(location.search);
   if(!isPhone && !timerTool) document.documentElement.classList.add('not-phone');
   // Şifre gerektiren sayfa (ilk mektup) şifre girilmeden açılırsa giriş sayfasına dön
   if(isPhone && document.documentElement.dataset.kapi==='gerekli'){

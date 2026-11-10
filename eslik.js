@@ -7,11 +7,13 @@
    ========================================================= */
 (function(){
   const sing=document.getElementById('sing');
-  const timerMode=new URLSearchParams(location.search).has('zamanla');
+  const params=new URLSearchParams(location.search);
+  const timerMode=params.has('zamanla');
+  const editMode=params.has('duzenle');
   const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   // Sayfaya yalnızca üçüncü mektup açıldıktan sonra gelinir
-  if(!timerMode){
+  if(!timerMode && !editMode){
     let progress=null;
     try{ progress=Number(localStorage.getItem(window.ZBI.KEY_PROGRESS)||0); }catch(e){}
     if(progress!==null && progress<3){ location.replace('/'); return; }
@@ -100,6 +102,88 @@
     copyB.addEventListener('click',async()=>{
       try{ await navigator.clipboard.writeText(out.value); copyB.textContent='Kopyalandı'; }
       catch(e){ out.select(); copyB.textContent='Seçildi, kopyala'; }
+    });
+    return;
+  }
+
+  /* ---------- Düzenleme aracı (?duzenle) ----------
+     Mevcut sozler.lrc dosyasını yükler; satırların zamanları tek tek ya da
+     hep birlikte kaydırılabilir, sonra düzeltilmiş dosya indirilir. */
+  if(editMode){
+    sing.hidden=true;
+    const ed=document.getElementById('editor');
+    ed.hidden=false;
+    const tbody=document.getElementById('edRows');
+    const shiftLbl=document.getElementById('edShift');
+    const playB=document.getElementById('edPlay');
+    const clock=document.getElementById('edClock');
+    let rows=[]; // {t, text, tr, timeEl}
+    const fmtT=(t)=>{ t=Math.max(0,t); const m=Math.floor(t/60), s=t-m*60; return `${m}:${s.toFixed(2).padStart(5,'0')}`; };
+    const lrcT=(t)=>{ t=Math.max(0,t); const m=Math.floor(t/60), s=t-m*60; return `[${String(m).padStart(2,'0')}:${s.toFixed(2).padStart(5,'0')}]`; };
+    let totalShift=0;
+    const refresh=()=>{ rows.forEach(r=>r.timeEl.textContent=fmtT(r.t)); shiftLbl.textContent=(totalShift>=0?'+':'')+totalShift.toFixed(2)+' sn'; };
+    const playFrom=(t)=>{ audio.currentTime=Math.max(0,t); play(); };
+    function build(){
+      tbody.innerHTML='';
+      rows.forEach((r,i)=>{
+        const tr=document.createElement('div');
+        tr.className='ed-row';
+        tr.innerHTML=`<div class="ed-top"><span class="ed-n">${i+1}</span><span class="ed-time"></span><span class="ed-text"></span></div>
+          <div class="ed-btns">
+            <button type="button" data-a="from" aria-label="${i+1}. satırın 2 saniye öncesinden çal">▶ Dinle</button>
+            <button type="button" data-a="-" aria-label="0,1 saniye öne al">−0,1</button>
+            <button type="button" data-a="+" aria-label="0,1 saniye geri al">+0,1</button>
+            <button type="button" data-a="now" class="ed-now" aria-label="Şu anki ana ayarla">Şimdi</button>
+          </div>`;
+        tr.querySelector('.ed-text').textContent=r.text||'♪';
+        r.tr=tr; r.timeEl=tr.querySelector('.ed-time');
+        tr.addEventListener('click',e=>{
+          const a=e.target.dataset&&e.target.dataset.a; if(!a) return;
+          if(a==='from') playFrom(r.t-2);
+          if(a==='-') r.t=Math.max(0,r.t-0.1);
+          if(a==='+') r.t+=0.1;
+          if(a==='now') r.t=audio.currentTime;
+          refresh();
+        });
+        tbody.appendChild(tr);
+      });
+      refresh();
+    }
+    fetch(sing.dataset.lyrics,{cache:'no-cache'}).then(r=>r.text()).then(txt=>{
+      txt.split(/\r?\n/).forEach(row=>{
+        if(!row.trim()||row.trim().startsWith('#')) return;
+        const m=row.match(/^\[(\d+):(\d+(?:\.\d+)?)\]\s*(.*)$/);
+        if(m) rows.push({t:Number(m[1])*60+Number(m[2]),text:m[3]});
+      });
+      build();
+    });
+    // Bütün satırları birlikte kaydır (ör. dokunma gecikmesini telafi etmek için)
+    document.querySelectorAll('[data-shift]').forEach(b=>b.addEventListener('click',()=>{
+      const d=Number(b.dataset.shift); totalShift+=d; rows.forEach(r=>r.t=Math.max(0,r.t+d)); refresh();
+    }));
+    playB.addEventListener('click',()=>{ audio.paused?play():audio.pause(); });
+    audio.addEventListener('play',()=>playB.textContent='Durdur');
+    audio.addEventListener('pause',()=>playB.textContent='Oynat');
+    // Çalan satırı vurgula
+    let active=-1;
+    const tick=()=>{
+      const t=audio.currentTime; clock.textContent=fmtT(t);
+      let i=-1; for(let k=0;k<rows.length;k++){ if(rows[k].t<=t) i=k; }
+      if(i!==active){
+        if(rows[active]) rows[active].tr.classList.remove('is-active');
+        active=i;
+        if(rows[i]){ rows[i].tr.classList.add('is-active'); if(!audio.paused) rows[i].tr.scrollIntoView({block:'center',behavior:'smooth'}); }
+      }
+      requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+    document.getElementById('edDownload').addEventListener('click',()=>{
+      const sorted=[...rows].sort((a,b)=>a.t-b.t);
+      const out=sorted.map(r=>`${lrcT(r.t)} ${r.text}`).join('\n')+'\n';
+      const a=document.createElement('a');
+      a.href=URL.createObjectURL(new Blob([out],{type:'text/plain;charset=utf-8'}));
+      a.download='sozler.lrc'; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(()=>URL.revokeObjectURL(a.href),2000);
     });
     return;
   }

@@ -71,6 +71,28 @@
     <button type="button" class="btn" id="timerCopy" disabled>Kopyala</button>
   </div>
 </section>
+<!-- Düzenleme aracı: yalnızca adresin sonuna ?duzenle eklenince görünür -->
+<section class="timer editor" id="editor" hidden aria-label="Söz zamanlarını düzeltme aracı">
+  <h1>Söz zamanlarını düzelt</h1>
+  <ol class="timer-steps">
+    <li>Oynat'a bas ve sözleri izle; çalan satır vurgulanır.</li>
+    <li>Hepsi geç ya da erken kalıyorsa üstteki düğmelerle hepsini birlikte kaydır.</li>
+    <li>Tek bir satır kayıyorsa: "Dinle" ile o satırı tekrar dinle, −0,1 / +0,1 ile düzelt ya da tam başladığı anda "Şimdi"ye bas.</li>
+    <li>Bitince "İndir"e bas ve dosyayı GitHub'da <code>eslik</code> klasörüne yükle.</li>
+  </ol>
+  <div class="ed-bar">
+    <button type="button" class="btn" id="edPlay">Oynat</button>
+    <span class="ed-clock" id="edClock">0:00.00</span>
+  </div>
+  <div class="ed-shift">
+    <span>Hepsini kaydır:</span>
+    <button type="button" data-shift="-0.1">−0,1</button>
+    <button type="button" data-shift="0.1">+0,1</button>
+    <span class="ed-shift-val" id="edShift">+0.00 sn</span>
+  </div>
+  <div class="ed-rows" id="edRows"></div>
+  <button type="button" class="btn ed-download" id="edDownload">İndir</button>
+</section>
 </main>
 <script src="/ortak.js"></script>
 <script src="/eslik.js"></script>
