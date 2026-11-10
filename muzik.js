@@ -1,6 +1,7 @@
 /* =========================================================
    Zamandan bir iz — müzik çalar widget'ı
-   - Çalma listesi ve kapak fotoğrafı muzik/liste.js'ten gelir.
+   - Çalma listeleri (temaya göre) ve kapak fotoğrafı muzik/liste.js'ten gelir.
+     Her sayfa <html data-era> temasının listesini çalar; giriş sayfası Geçmiş'i.
    - Her sayfada aynı widget: açık hâl (kart) ve yuvarlak hâl (kapak
      fotoğraflı, sürüklenebilir). Birine dokununca diğerine geçer.
    - Müzik kendiliğinden başlamaz. Giriş sayfası her açıldığında çalar
@@ -11,10 +12,13 @@
      üzerinden bir kazanç düğümüyle ayarlanır.
    ========================================================= */
 (function(){
-  const LIST=window.ZBI_LISTE||[];
-  if(!LIST.length) return;
   const KEY=window.ZBI.KEY_MUSIC;
   const isEntry=document.documentElement.dataset.page==='giris';
+  // Sayfanın teması: giriş sayfası Geçmiş'i çalar (ilk mektuba geçince müzik sürsün diye)
+  const ERA=isEntry?'past':(document.documentElement.dataset.era||'past');
+  const LISTS=window.ZBI_LISTE||{};
+  const LIST=Array.isArray(LISTS)?LISTS:(LISTS[ERA]||[]);
+  if(!LIST.length) return;
   const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   /* ---------- Durum ---------- */
@@ -28,10 +32,13 @@
     open: typeof saved.open==='boolean' ? saved.open : isEntry,
     pos: saved.pos && typeof saved.pos.x==='number' ? saved.pos : null // yuvarlağın yeri (ekranın oranı olarak)
   };
+  // Başka bir temadan gelindiyse bu sayfanın listesine baştan başla
+  // (çalıyorduysa ilk dokunuşta bu temanın ilk şarkısı çalar)
+  if(saved.era!==ERA){ st.i=0; st.t=0; }
   // Giriş sayfası her açıldığında baştan: ilk şarkı, durmuş, çalar açık
   if(isEntry){ st.i=0; st.t=0; st.playing=false; st.open=true; }
 
-  const save=()=>{ try{ localStorage.setItem(KEY,JSON.stringify({i:st.i,t:audio.currentTime||0,playing:st.playing,vol:st.vol,open:st.open,pos:st.pos})); }catch(e){} };
+  const save=()=>{ try{ localStorage.setItem(KEY,JSON.stringify({era:ERA,i:st.i,t:audio.currentTime||0,playing:st.playing,vol:st.vol,open:st.open,pos:st.pos})); }catch(e){} };
 
   /* ---------- Ses motoru ---------- */
   const audio=new Audio();
