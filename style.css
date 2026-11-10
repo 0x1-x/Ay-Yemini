@@ -45,7 +45,6 @@ h1{font-size:clamp(30px,8vw,42px);font-weight:400;letter-spacing:.02em;line-heig
 .moon{
   width:92px;height:92px;margin:22px auto 26px;position:relative;
   filter:drop-shadow(0 0 14px #c5a36a3a) drop-shadow(0 0 34px #c5a36a1c);
-  animation:moonGlow 9s ease-in-out infinite;
 }
 /* Ayın karanlık kısmı: çok soluk bir disk */
 .moon:before{
@@ -59,7 +58,6 @@ h1{font-size:clamp(30px,8vw,42px);font-weight:400;letter-spacing:.02em;line-heig
   -webkit-mask:radial-gradient(circle 42px at 62px 37px,transparent 41.4px,#000 42.4px);
           mask:radial-gradient(circle 42px at 62px 37px,transparent 41.4px,#000 42.4px);
 }
-@keyframes moonGlow{50%{filter:drop-shadow(0 0 17px #c5a36a48) drop-shadow(0 0 40px #c5a36a24)}}
 
 /* ---------- Zarf ---------- */
 .envelope-wrap{
@@ -538,12 +536,14 @@ html.mw-open main{padding-bottom:calc(max(28px,env(safe-area-inset-bottom)) + 20
 .mw-ring-track{stroke:#c5a36a2e}
 .mw-ring-fill{stroke:var(--gold);stroke-linecap:round;opacity:0;transition:opacity .4s}
 .mw.is-playing .mw-ring-fill{opacity:1}
-.mw.is-playing .mw-bubble{animation:bubbleGlow 3.2s ease-in-out infinite}
-.mw-bubble.dragging{cursor:grabbing;animation:none!important}
+.mw-bubble:after{content:"";position:absolute;inset:-6px;border-radius:50%;box-shadow:0 0 18px #c5a36a55;opacity:0;pointer-events:none}
+.mw.is-playing .mw-bubble:after{animation:bubbleGlow 3.2s ease-in-out infinite}
+.mw-bubble.dragging{cursor:grabbing}
+.mw-bubble.dragging:after{animation:none;opacity:0}
 .mw-bubble .mw-cover{transition:transform .15s}
 .mw-bubble.dragging .mw-cover{transform:scale(1.06)}
 .mw-bubble:focus-visible{outline:1px solid var(--gold);outline-offset:4px}
-@keyframes bubbleGlow{50%{box-shadow:0 10px 26px #000b,0 0 0 1px #c5a36a55,0 0 18px #c5a36a40}}
+@keyframes bubbleGlow{50%{opacity:1}}
 
 @media (prefers-reduced-motion:reduce){
   *,*:before,*:after{animation:none!important;transition:none!important}

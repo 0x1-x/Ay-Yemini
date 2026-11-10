@@ -249,7 +249,7 @@
     setBubble(clamp(x,MARGIN,w-SIZE-MARGIN),clamp(y,MARGIN,h-SIZE-MARGIN));
     if(st.open) placePanel();
   }
-  let drag=null, raf=0, lastDragEnd=0;
+  let drag=null, lastDragEnd=0;
   bubble.addEventListener('pointerdown',e=>{
     if(e.button!==undefined && e.button!==0) return;
     drag={id:e.pointerId,sx:e.clientX,sy:e.clientY,ox:bx,oy:by,x:bx,y:by,moved:false};
@@ -266,12 +266,11 @@
     const {w,h}=bounds();
     drag.x=clamp(drag.ox+dx,MARGIN,w-SIZE-MARGIN);
     drag.y=clamp(drag.oy+dy,MARGIN,h-SIZE-MARGIN);
-    if(!raf) raf=requestAnimationFrame(()=>{ raf=0; if(drag) setBubble(drag.x,drag.y); });
+    setBubble(drag.x,drag.y); // doğrudan: parmağın bir kare gerisinde kalmasın
   });
   const endDrag=(e)=>{
     if(!drag||e.pointerId!==drag.id) return;
     const d=drag; drag=null;
-    if(raf){ cancelAnimationFrame(raf); raf=0; }
     bubble.classList.remove('dragging');
     if(d.moved){
       setBubble(d.x,d.y);
@@ -285,6 +284,8 @@
   // Sürükleme bittiği an gelen tıklama yuvarlağı açmasın
   bubble.addEventListener('click',()=>{ if(Date.now()-lastDragEnd<400) return; setOpen(true); });
   bubble.addEventListener('contextmenu',e=>e.preventDefault());
+  // iPhone'da sürüklerken sayfanın kaymasını engelle
+  bubble.addEventListener('touchmove',e=>{ if(e.cancelable) e.preventDefault(); },{passive:false});
   window.addEventListener('resize',placeBubble);
   if(window.visualViewport) visualViewport.addEventListener('resize',placeBubble);
 
