@@ -466,55 +466,81 @@ main{position:relative;z-index:1}
 .era-future{-webkit-mask:linear-gradient(90deg,#000 50%,transparent 50%),radial-gradient(ellipse 31% 50% at 50% 50%,#000 98%,transparent 100%);mask:linear-gradient(90deg,#000 50%,transparent 50%),radial-gradient(ellipse 31% 50% at 50% 50%,#000 98%,transparent 100%)}
 .entry-go{display:inline-block;text-decoration:none;margin-top:26px;letter-spacing:.24em}
 
-/* ---------- Müzik çalar (giriş sayfası) ---------- */
-.player{
-  margin:0 auto;width:min(100%,340px);padding:22px 22px 18px;border:1px solid #c5a36a40;border-radius:3px;
-  background:linear-gradient(180deg,#1d1a16cc,#151412cc);box-shadow:0 18px 40px #0008,inset 0 1px 0 #c5a36a14;
+/* ---------- Müzik çalar widget'ı ----------
+   .is-open: alttaki kart; .is-bubble: kapak fotoğraflı, sürüklenebilir yuvarlak */
+.mw[hidden]{display:none!important}
+.mw-panel,.mw-bubble{position:fixed;z-index:30}
+.mw.ready .mw-panel,.mw.ready .mw-bubble{transition:opacity .35s var(--ease),transform .35s var(--ease),visibility 0s linear .35s}
+.mw.is-open .mw-bubble,.mw.is-bubble .mw-panel{opacity:0;visibility:hidden;pointer-events:none}
+.mw.is-open .mw-bubble{transform:scale(.6)}
+.mw.is-bubble .mw-panel{transform:translate(-50%,24px)}
+.mw.is-open .mw-panel,.mw.is-bubble .mw-bubble{visibility:visible;transition-delay:0s}
+
+/* Açık hâl */
+.mw-panel{
+  left:50%;bottom:max(12px,env(safe-area-inset-bottom));transform:translateX(-50%);
+  width:min(calc(100% - 24px),380px);padding:14px 16px 12px;
+  border:1px solid #c5a36a40;border-radius:18px;
+  background:#17151399;-webkit-backdrop-filter:blur(18px) saturate(1.2);backdrop-filter:blur(18px) saturate(1.2);
+  box-shadow:0 18px 44px #000a,inset 0 1px 0 #c5a36a14;text-align:left;
 }
-.pl-eyebrow{font:500 10px/1.5 var(--sans);letter-spacing:.28em;text-transform:uppercase;color:var(--gold);opacity:.85}
-.pl-title{font-size:20px;line-height:1.35;margin:8px 0 2px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.pl-artist{font:13px/1.5 var(--sans);color:var(--muted);min-height:1.5em}
-.pl-bar{position:relative;height:16px;margin:14px 0 2px;cursor:pointer;outline:none}
+.mw-head{display:flex;align-items:center;gap:12px}
+.mw-cover{
+  position:relative;flex:none;border-radius:50%;overflow:hidden;display:block;
+  background:radial-gradient(circle at 50% 40%,#2a241c,#121110);
+  box-shadow:inset 0 0 0 1px #c5a36a55;
+}
+/* Kapak fotoğrafı yokken: hilal */
+.mw-cover:before{
+  content:"";position:absolute;inset:24%;border-radius:50%;
+  background:radial-gradient(circle at 28% 48%,#f8efd6 0,#e3d2a8 34%,#bfa776 62%,#8a7552 100%);
+  -webkit-mask:radial-gradient(circle at 70% 36%,transparent 46%,#000 47.5%);
+          mask:radial-gradient(circle at 70% 36%,transparent 46%,#000 47.5%);
+}
+.mw-cover img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;-webkit-user-drag:none;user-select:none}
+.mw-cover-sm{width:46px;height:46px;padding:0;border:0;cursor:pointer;-webkit-appearance:none;appearance:none}
+.mw-meta{flex:1;min-width:0}
+.pl-eyebrow{font:500 9px/1.5 var(--sans);letter-spacing:.26em;text-transform:uppercase;color:var(--gold);opacity:.85}
+.pl-title{font-size:17px;line-height:1.3;margin:2px 0 0;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pl-artist{font:12px/1.4 var(--sans);color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mw-shrink{align-self:flex-start;margin:-6px -8px 0 0}
+.pl-bar{position:relative;height:16px;margin:10px 0 0;cursor:pointer;outline:none}
 .pl-bar:before{content:"";position:absolute;left:0;right:0;top:7.5px;height:1px;background:#c5a36a33}
 .pl-bar .pl-fill{position:absolute;left:0;top:7px;height:2px;width:0;background:var(--gold);box-shadow:0 0 6px #c5a36a88}
 .pl-bar .pl-fill:after{content:"";position:absolute;right:-4px;top:-3px;width:8px;height:8px;border-radius:50%;background:#e8d3a4}
 .pl-bar:focus-visible{outline:1px solid var(--gold);outline-offset:4px}
-.pl-times{display:flex;justify-content:space-between;font:11px/1 var(--sans);color:#8f846f;font-variant-numeric:tabular-nums}
-.pl-controls{display:flex;justify-content:center;align-items:center;gap:22px;margin:14px 0 10px}
-.pl-btn{-webkit-appearance:none;appearance:none;background:none;border:0;padding:0;width:44px;height:44px;display:grid;place-items:center;color:#e8d8b9;cursor:pointer;border-radius:50%;transition:background-color .25s,opacity .25s}
-.pl-btn svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+.pl-times{display:flex;justify-content:space-between;font:10px/1 var(--sans);color:#8f846f;font-variant-numeric:tabular-nums;margin-top:2px}
+.pl-controls{display:flex;justify-content:space-between;align-items:center;margin:8px 0 6px}
+.pl-btn{-webkit-appearance:none;appearance:none;background:none;border:0;padding:0;width:44px;height:44px;display:grid;place-items:center;color:#e8d8b9;cursor:pointer;border-radius:50%;transition:background-color .25s,opacity .25s;-webkit-tap-highlight-color:transparent}
+.pl-btn svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+.pl-btn svg.i-fill path{fill:currentColor;stroke:none}
 @media (hover:hover){.pl-btn:hover{background:#c5a36a14}}
 .pl-btn:focus-visible{outline:1px solid var(--gold);outline-offset:2px}
 .pl-btn:disabled{opacity:.3;cursor:default;background:none}
-.player .pl-play{width:58px;height:58px;border:1px solid var(--gold-soft)}
-.player .pl-play svg{width:24px;height:24px}
-.pl-play svg path{fill:currentColor;stroke:none}
-.is-playing .pl-play svg path{fill:none;stroke:currentColor;stroke-width:2}
-.pl-volume{display:flex;align-items:center;gap:8px}
-.pl-vol{flex:1;height:1px;background:#c5a36a33;position:relative}
-.pl-vol-fill{position:absolute;left:0;top:-.5px;height:2px;background:var(--gold-soft)}
+.mw-panel .pl-play{width:54px;height:54px;border:1px solid var(--gold-soft)}
+.mw-panel .pl-play svg{width:22px;height:22px}
+.mw-panel .pl-play svg:not(.i-fill){stroke-width:2}
+.pl-vol{height:1px;background:#c5a36a26;position:relative;margin:2px 4px 0}
+.pl-vol-fill{position:absolute;left:0;top:-.5px;height:2px;background:var(--gold-soft);transition:width .2s}
+html.mw-open main{padding-bottom:calc(max(28px,env(safe-area-inset-bottom)) + 200px)}
 
-/* ---------- Küçük çalar (mektuplar) ---------- */
-html.has-mini main{padding-bottom:calc(max(28px,env(safe-area-inset-bottom)) + 76px)}
-.mini-player{
-  position:fixed;z-index:20;left:50%;bottom:max(12px,env(safe-area-inset-bottom));transform:translateX(-50%);
-  width:min(calc(100% - 24px),400px);display:flex;align-items:center;gap:6px;padding:6px 6px 6px 16px;
-  border:1px solid #c5a36a3a;border-radius:30px;background:#16141299;
-  -webkit-backdrop-filter:blur(14px) saturate(1.2);backdrop-filter:blur(14px) saturate(1.2);
-  box-shadow:0 10px 30px #0009;animation:fadeIn 1s var(--ease) both;
+/* Yuvarlak hâl */
+.mw-bubble{
+  left:0;top:0;width:64px;height:64px;padding:0;border:0;border-radius:50%;cursor:grab;
+  background:none;-webkit-appearance:none;appearance:none;touch-action:none;
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
+  box-shadow:0 10px 26px #000b,0 0 0 1px #c5a36a33;
 }
-.mini-info{flex:1;min-width:0}
-.mini-player .pl-title{font-size:14px;margin:0 0 5px;color:var(--text)}
-.mini-track{height:1px;background:#c5a36a2a;position:relative}
-.mini-track .pl-fill{position:absolute;left:0;top:-.5px;height:2px;width:0;background:var(--gold-soft)}
-.mini-controls{display:flex;align-items:center}
-.mini-player .pl-btn{width:38px;height:38px}
-.mini-player .pl-btn svg{width:18px;height:18px}
-.mini-player .pl-play{border:1px solid #c5a36a66}
-@media (max-width:360px){
-  .mini-player{padding-left:12px;gap:2px}
-  .mini-player .pl-btn{width:34px;height:34px}
-}
+.mw-bubble .mw-cover{position:absolute;inset:4px}
+.mw-ring{position:absolute;inset:-2px;width:68px;height:68px;transform:rotate(-90deg);pointer-events:none}
+.mw-ring circle{fill:none;stroke-width:1.6}
+.mw-ring-track{stroke:#c5a36a2e}
+.mw-ring-fill{stroke:var(--gold);stroke-linecap:round;opacity:0;transition:opacity .4s}
+.mw.is-playing .mw-ring-fill{opacity:1}
+.mw.is-playing .mw-bubble{animation:bubbleGlow 3.2s ease-in-out infinite}
+.mw-bubble.dragging{cursor:grabbing;transform:scale(1.06)!important;transition:transform .15s!important}
+.mw-bubble:focus-visible{outline:1px solid var(--gold);outline-offset:4px}
+@keyframes bubbleGlow{50%{box-shadow:0 10px 26px #000b,0 0 0 1px #c5a36a55,0 0 18px #c5a36a40}}
 
 @media (prefers-reduced-motion:reduce){
   *,*:before,*:after{animation:none!important;transition:none!important}

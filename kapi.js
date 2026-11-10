@@ -35,12 +35,11 @@ if(gate){
     msg.textContent='';
     input.blur();
     try{ localStorage.setItem(window.ZBI.KEY_GATE,'1'); }catch(e){}
-    // Doğru tarih girildiği an müziği başlatmayı dene (dokunuş hâlâ "taze")
-    if(window.ZBIMuzik) window.ZBIMuzik.start();
     setTimeout(()=>gate.classList.add('leaving'),reduceMotion?0:700);
     setTimeout(()=>{
       gate.hidden=true;
       entry.hidden=false;
+      if(window.ZBIMuzik) window.ZBIMuzik.show(); // müzik kendiliğinden başlamaz
       entry.classList.add('from-gate');
       window.scrollTo({top:0,behavior:'auto'});
       entry.focus({preventScroll:true});
