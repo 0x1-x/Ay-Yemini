@@ -665,6 +665,13 @@ html[data-page="son"] main{padding-top:max(20px,env(safe-area-inset-top));paddin
 .revisit-menu{display:flex;flex-direction:column;align-items:center;gap:12px}
 .revisit-menu .btn{width:min(100%,280px);text-decoration:none;text-align:center}
 
+/* Ters kart ve birleşik yorum */
+.tcard.open.rev .tc-front{transform:rotateY(0) rotate(180deg)}
+.ri-rev{display:inline-block;margin-left:8px;padding:2px 7px;border:1px solid #c5a36a66;border-radius:10px;letter-spacing:.14em;color:var(--muted)}
+.tarot-summary{padding:18px;border:1px solid var(--gold-soft);border-radius:10px;margin:14px 0 10px;background:linear-gradient(180deg,#221d16cc,#17151399);animation:rise .9s var(--ease) both}
+.tarot-summary.no-anim{animation:none}
+.tarot-summary p{margin:10px 0 0;font-style:italic;font-size:17px;line-height:1.75;color:var(--text)}
+
 @media (prefers-reduced-motion:reduce){
   *,*:before,*:after{animation:none!important;transition:none!important}
 }

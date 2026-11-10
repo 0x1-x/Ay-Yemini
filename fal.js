@@ -75,7 +75,7 @@
   const reading=document.getElementById('tarotReading');
   const shuffleBtn=document.getElementById('shuffleBtn');
   const lead=document.getElementById('tarotLead');
-  let state=null; // {at, cards:[index], open:[bool]}
+  let state=null; // {at, cards:[index], rev:[bool], open:[bool]}
   let timer=0;
 
   const loadState=()=>{ try{ const v=JSON.parse(localStorage.getItem(KEY)); return v&&Array.isArray(v.cards)&&v.cards.length===3?v:null; }catch(e){ return null; } };
@@ -89,12 +89,14 @@
     return idx.slice(0,3);
   }
 
+  const isRev=(i)=>!!(state.rev&&state.rev[i]);
   function addReading(i){
-    const c=DECK[state.cards[i]], p=POS[i];
+    const c=DECK[state.cards[i]], p=POS[i], r=isRev(i);
     const item=document.createElement('article');
-    item.className='reading-item';
+    item.className='reading-item'+(r?' is-rev':'');
     item.dataset.order=i;
-    item.innerHTML=`<div class="ri-pos">${p.ad}</div><h3>${c.ad}</h3><div class="ri-keys">${c.anahtar}</div><p>${c[p.k]}</p>`;
+    const text=r?c['t'+p.k]:c[p.k];
+    item.innerHTML=`<div class="ri-pos">${p.ad}${r?' <span class="ri-rev">Ters</span>':''}</div><h3>${c.ad}</h3><div class="ri-keys">${r?c.tanahtar:c.anahtar}</div><p>${text}</p>`;
     // Okuma sırası her zaman Geçmiş → Şimdi → Gelecek
     const after=[...reading.children].find(el=>Number(el.dataset.order)>i);
     reading.insertBefore(item,after||null);
@@ -117,10 +119,10 @@
       const slot=document.createElement('div');
       slot.className='slot-card';
       slot.innerHTML=`<div class="slot-label">${p.ad}</div>
-        <button type="button" class="tcard" aria-label="${p.ad} kartını aç" style="--i:${i}">${cardFace(c)}</button>`;
+        <button type="button" class="tcard${isRev(i)?' rev':''}" aria-label="${p.ad} kartını aç" style="--i:${i}">${cardFace(c)}</button>`;
       const btn=slot.querySelector('.tcard');
       if(state.open[i]){
-        btn.classList.add('open'); btn.disabled=true; btn.setAttribute('aria-label',`${p.ad}: ${c.ad}`);
+        btn.classList.add('open'); btn.disabled=true; btn.setAttribute('aria-label',`${p.ad}: ${c.ad}${isRev(i)?', ters':''}`);
         addReading(i);
       }else{
         btn.addEventListener('click',()=>reveal(i,btn),{once:true});
@@ -130,15 +132,44 @@
     if(animate) requestAnimationFrame(()=>spread.classList.add('dealt'));
     else spread.classList.add('dealt');
     updateLead();
+    renderSummary(false);
+  }
+
+  /* ---------- Üç kartın birleşik yorumu ----------
+     Kartların kısa özetleri (düz: ozet, ters: tozet) ters kart sayısına göre
+     seçilen bir kalıpla tek bir hikâyede birleşir. */
+  function renderSummary(animate){
+    const old=document.getElementById('tarotSummary'); if(old) old.remove();
+    if(!state || state.open.some(o=>!o)) return;
+    const z=[0,1,2].map(i=>{ const c=DECK[state.cards[i]]; return isRev(i)?c.tozet:c.ozet; });
+    const n=[0,1,2].filter(isRev).length;
+    const cap=(t)=>t.charAt(0).toLocaleUpperCase('tr')+t.slice(1);
+    const T=[
+      // 0 ters: akan bir hikâye
+      `${cap(z[0])} seni bugüne taşıdı. Şimdi hayatında ${z[1]} var ve önünde ${z[2]} seni bekliyor. Kartlar aynı yöne bakıyor: yolun açık, akış senden yana.`,
+      // 1 ters
+      `${cap(z[0])} ile başlayan yol, bugün ${z[1]} ile sürüyor; yarın ise ${z[2]} getiriyor. Kartlardan biri ters: hikâyenin bir yerinde küçük bir duraksama var, ama yönü değiştirmiyor.`,
+      // 2 ters
+      `Geçmişte ${z[0]}, bugün ${z[1]}, gelecekte ${z[2]}. İki kart ters geldi: enerjinin bir kısmı içe dönmüş. Acele etmeden, kendine zaman tanıdığında düğümler kendiliğinden çözülecek.`,
+      // 3 ters
+      `${cap(z[0])}, ${z[1]} ve ${z[2]}. Üç kart da ters: şu an dışarıya değil içeriye bakma zamanı. Bu bir uyarı değil, bir dinlenme çağrısı; yeniden başlamadan önce nefes al.`
+    ];
+    const el=document.createElement('article');
+    el.id='tarotSummary';
+    el.className='tarot-summary'+(animate?'':' no-anim');
+    el.innerHTML=`<div class="ri-pos">Üç kartın hikâyesi</div><p>${T[n]}</p>`;
+    reading.appendChild(el);
+    if(animate && !reduceMotion) setTimeout(()=>el.scrollIntoView({behavior:'smooth',block:'nearest'}),700);
   }
 
   function reveal(i,btn){
     btn.classList.add('open');
     btn.disabled=true;
-    btn.setAttribute('aria-label',`${POS[i].ad}: ${DECK[state.cards[i]].ad}`);
+    btn.setAttribute('aria-label',`${POS[i].ad}: ${DECK[state.cards[i]].ad}${isRev(i)?', ters':''}`);
     state.open[i]=true; saveState();
     const item=addReading(i);
     updateLead();
+    renderSummary(true);
     if(!reduceMotion) setTimeout(()=>item.scrollIntoView({behavior:'smooth',block:'nearest'}),450);
   }
 
@@ -160,7 +191,7 @@
 
   function deal(){
     if(state && Date.now()<state.at+DAY) return;
-    state={at:Date.now(),cards:draw3(),open:[false,false,false]};
+    state={at:Date.now(),cards:draw3(),rev:[0,1,2].map(()=>randInt(2)===1),open:[false,false,false]};
     saveState();
     render(true);
     updateButton();
