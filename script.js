@@ -27,6 +27,36 @@ const storage={
 const ORDINAL=['','ilk','ikinci','üçüncü'];
 const progress=storage.get();
 const locked=STEP>1 && progress!==null && progress<STEP-1;
+
+/* ---------- Üçüncü kart sonraki okutuşlarda: menü ----------
+   Saat sahnesi bir kez sonuna kadar izlendiyse mektup baştan oynamak
+   yerine üç seçenekli bir menü açılır. */
+let done=false;
+try{ done=localStorage.getItem(window.ZBI.KEY_DONE)==='1'; }catch(e){}
+if(STEP===3 && done && !locked){
+  const menu=document.createElement('section');
+  menu.className='revisit';
+  menu.setAttribute('aria-labelledby','revisitTitle');
+  menu.innerHTML=`
+    <div class="eyebrow">Zamandan bir iz · Mektup III</div>
+    <div class="moon" aria-hidden="true"></div>
+    <h1 id="revisitTitle">Yeniden hoş geldin</h1>
+    <p class="intro">Nereye dönmek istersin?</p>
+    <nav class="revisit-menu" aria-label="Seçenekler">
+      <button type="button" class="btn" id="revisitLetter">Mektubu yeniden oku</button>
+      <a class="btn" href="/son/">Son şarkı</a>
+      <a class="btn" href="/fal/">Fal</a>
+    </nav>`;
+  scene.hidden=true;
+  scene.parentNode.insertBefore(menu,scene);
+  menu.querySelector('#revisitLetter').addEventListener('click',()=>{
+    menu.remove();
+    scene.hidden=false;
+    scene.classList.add('from-gate');
+    window.scrollTo({top:0,behavior:'auto'});
+    openBtn.focus({preventScroll:true});
+  });
+}
 if(locked){
   scene.classList.add('locked');
   hint.textContent=`Bu zarfın zamanı henüz gelmedi. Önce ${ORDINAL[progress+1]} zarfı aç.`;
@@ -262,7 +292,11 @@ function startFinale(){
 
   // Kapağın açılışının bittiği an (CSS'teki gecikmelerle aynı)
   const lidEnd=hasMoon?5600:2800;
-  const finish=()=>finale.classList.add('done');
+  const finish=()=>{
+    finale.classList.add('done');
+    // Son mektup sonuna kadar izlendi: kart bir daha okutulunca menü açılır
+    if(STEP===3){ try{ localStorage.setItem(window.ZBI.KEY_DONE,'1'); }catch(e){} }
+  };
 
   let tickTimer=null;
   const showNow=()=>{

@@ -5,7 +5,8 @@
 window.ZBI={
   KEY_PROGRESS:'zamandan-bir-iz:acilan', // açılan en son mektup
   KEY_GATE:'zamandan-bir-iz:kapi',       // şifre bir kez doğru girildi mi
-  KEY_MUSIC:'zamandan-bir-iz:muzik'      // çalan şarkı, yeri, ses düzeyi
+  KEY_MUSIC:'zamandan-bir-iz:muzik',     // çalan şarkı, yeri, ses düzeyi
+  KEY_DONE:'zamandan-bir-iz:tamamlandi'   // üçüncü mektubun saat sahnesi sonuna kadar izlendi mi
 };
 
 // Hediyeden önce deneme yapabilmek için: adresin sonuna ?sifirla eklenirse
