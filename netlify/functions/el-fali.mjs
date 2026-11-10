@@ -8,11 +8,25 @@
 import { GoogleGenAI, ApiError, ThinkingLevel } from "@google/genai";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-const MODEL = process.env.GEMINI_MODEL || "gemini-3.8-flash";
+// Ana model yoğunsa sırayla yedeklere geçilir (Netlify'da GEMINI_MODEL / GEMINI_FALLBACK_MODELS ile değiştirilebilir)
+const MODELS = [
+  process.env.GEMINI_MODEL || "gemini-3.8-flash",
+  ...(process.env.GEMINI_FALLBACK_MODELS || "gemini-3.7-flash,gemini-3.5-flash,gemini-2.5-flash").split(",")
+].map((m) => m.trim()).filter((m, i, a) => m && a.indexOf(m) === i);
 
 const MAX_IMAGE_CHARS = 2_500_000; // ~1.8 MB'lık JPEG (base64)
-// Netlify fonksiyonu ~30 sn'de kesilir; Gemini'ye ondan önce dolan bir süre tanı
-const GEMINI_TIMEOUT_MS = 22_000;
+// Netlify fonksiyonu ~30 sn'de kesilir; bütün denemeler bu ortak süre içinde biter
+const TOTAL_BUDGET_MS = 25_000;
+
+// Düşünme ayarı model ailesine göre: 3.x'te düşük seviye (MINIMAL desteklenmiyor), 2.x'te kapalı
+const thinkingFor = (model) =>
+  /gemini-2\./.test(model) ? { thinkingBudget: 0 } : { thinkingLevel: ThinkingLevel.LOW };
+
+// Yoğunluk, kota, zaman aşımı ya da modelin bulunamaması: bir sonraki modele geç
+const isRetryable = (error) =>
+  (error instanceof ApiError && [404, 429, 500, 503, 504].includes(error.status)) ||
+  error?.name === "AbortError" || error?.name === "TimeoutError" ||
+  /timed? ?out|aborted/i.test(String(error?.message));
 
 const SCHEMA = {
   type: "object",
@@ -81,9 +95,12 @@ export default async (req) => {
     return json(400, { hata: "Fotoğraf okunamadı ya da çok büyük." });
   }
 
-  try {
-    const response = await ai.models.generateContent({
-      model: MODEL,
+  const deadline = Date.now() + TOTAL_BUDGET_MS;
+  const generate = async (model) => {
+    const left = deadline - Date.now();
+    if (left < 2500) throw Object.assign(new Error("timed out"), { name: "TimeoutError" });
+    return ai.models.generateContent({
+      model,
       contents: [
         {
           role: "user",
@@ -98,15 +115,27 @@ export default async (req) => {
         responseMimeType: "application/json",
         responseJsonSchema: SCHEMA,
         maxOutputTokens: 1500,
-        // Kısa bir yorum için uzun düşünmeye gerek yok: yanıt süresini kısaltır
-        thinkingConfig: { thinkingLevel: ThinkingLevel.LOW }, // bu model MINIMAL desteklemiyor
-        // Süreyi sınırla; yoğunlukta en fazla bir kez, kısa bekleyerek yeniden dene
-        httpOptions: {
-          timeout: GEMINI_TIMEOUT_MS,
-          retryOptions: { attempts: 2, initialDelay: 1, maxDelay: 2 }
-        }
+        thinkingConfig: thinkingFor(model),
+        // Kalan süreyi kullan; yeniden denemeyi SDK yerine model değiştirerek yap
+        httpOptions: { timeout: left - 500, retryOptions: { attempts: 1 } }
       }
     });
+  };
+
+  try {
+    let response, lastError;
+    for (const model of MODELS) {
+      try {
+        response = await generate(model);
+        console.log(`El falı yanıtı: ${model}`);
+        break;
+      } catch (error) {
+        lastError = error;
+        console.warn(`${model} kullanılamadı:`, error?.status || error?.name, String(error?.message).slice(0, 200));
+        if (!isRetryable(error) || deadline - Date.now() < 2500) break;
+      }
+    }
+    if (!response) throw lastError;
 
     // Güvenlik filtresi istemi ya da yanıtı durdurduysa metin boş gelir
     const text = response.text;
