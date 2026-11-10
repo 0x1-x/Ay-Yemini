@@ -555,7 +555,7 @@ html.mw-open main{padding-bottom:calc(max(28px,env(safe-area-inset-bottom)) + 20
 .finale.done .finale-next{opacity:1;transform:none;pointer-events:auto}
 
 /* ---------- Eşlik sayfası: akan sözler ---------- */
-html[data-page="eslik"] main{padding-top:max(20px,env(safe-area-inset-top));padding-bottom:max(16px,env(safe-area-inset-bottom))}
+html[data-page="son"] main{padding-top:max(20px,env(safe-area-inset-top));padding-bottom:max(16px,env(safe-area-inset-bottom))}
 .sing{width:min(100%,440px);height:calc(100svh - max(20px,env(safe-area-inset-top)) - max(16px,env(safe-area-inset-bottom)));display:flex;flex-direction:column;animation:fadeIn 1.4s var(--ease) both}
 .sing[hidden]{display:none}
 .sing-head{display:flex;align-items:center;gap:14px;text-align:left;padding:4px 4px 0}
