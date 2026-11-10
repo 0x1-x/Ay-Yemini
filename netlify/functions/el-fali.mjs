@@ -9,10 +9,10 @@ import { GoogleGenAI, ApiError, ThinkingLevel } from "@google/genai";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 // Ana model yoğunsa sırayla yedeklere geçilir (Netlify'da GEMINI_MODEL / GEMINI_FALLBACK_MODELS ile değiştirilebilir)
-// gemini-2.5-flash düşünmeden yanıt verebildiği için hızlı ve daha az yoğun; yeni 3.x modelleri bu iş için yavaş kalıyor
+// Hafif "flash-lite" modelleri hızlı ve yoğunluktan daha az etkileniyor; ana flash modelleri yedekte
 const MODELS = [
-  process.env.GEMINI_MODEL || "gemini-2.5-flash",
-  ...(process.env.GEMINI_FALLBACK_MODELS || "gemini-3.8-flash,gemini-3.5-flash").split(",")
+  process.env.GEMINI_MODEL || "gemini-3.5-flash-lite",
+  ...(process.env.GEMINI_FALLBACK_MODELS || "gemini-3.1-flash-lite,gemini-3.8-flash,gemini-3.5-flash").split(",")
 ].map((m) => m.trim()).filter((m, i, a) => m && a.indexOf(m) === i);
 
 const MAX_IMAGE_CHARS = 2_500_000; // ~1.8 MB'lık JPEG (base64)
@@ -21,9 +21,12 @@ const TOTAL_BUDGET_MS = 25_000;
 // Tek bir model bütün süreyi tüketmesin: her deneme en fazla bu kadar sürer
 const PER_MODEL_MS = 12_000;
 
-// Düşünme ayarı model ailesine göre: 3.x'te düşük seviye (MINIMAL desteklenmiyor), 2.x'te kapalı
+// Düşünme ayarı model ailesine göre: lite modellerde gönderilmez (zaten az düşünürler),
+// 2.x'te kapalı, diğer 3.x modellerinde düşük seviye (MINIMAL desteklenmiyor)
 const thinkingFor = (model) =>
-  /gemini-2\./.test(model) ? { thinkingBudget: 0 } : { thinkingLevel: ThinkingLevel.LOW };
+  /lite/.test(model) ? undefined
+  : /gemini-2\./.test(model) ? { thinkingBudget: 0 }
+  : { thinkingLevel: ThinkingLevel.LOW };
 
 // Yoğunluk, kota, zaman aşımı ya da modelin bulunamaması: bir sonraki modele geç
 const isRetryable = (error) =>
