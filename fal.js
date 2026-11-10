@@ -1,0 +1,154 @@
+/* =========================================================
+   Zamandan bir iz — Fal sayfası
+   - Tarot: 22 Büyük Arkana'dan gerçekten rastgele 3 kart (Geçmiş · Şimdi · Gelecek)
+   - Kahve falı: önceden bakılmış iki fincanın farklı gözlerden yorumları
+   ========================================================= */
+(function(){
+  const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Sayfaya yalnızca üçüncü mektup açıldıktan sonra gelinir
+  let progress=null;
+  try{ progress=Number(localStorage.getItem(window.ZBI.KEY_PROGRESS)||0); }catch(e){}
+  if(progress!==null && progress<3){ location.replace('/'); return; }
+
+  /* ---------- Sekmeler ---------- */
+  const tabs=[...document.querySelectorAll('.fal-tabs [role=tab]')];
+  function selectTab(tab){
+    tabs.forEach(t=>{
+      const on=t===tab;
+      t.setAttribute('aria-selected',on);
+      t.tabIndex=on?0:-1;
+      document.getElementById(t.getAttribute('aria-controls')).hidden=!on;
+    });
+  }
+  tabs.forEach((t,i)=>{
+    t.addEventListener('click',()=>selectTab(t));
+    t.addEventListener('keydown',e=>{
+      if(e.key==='ArrowRight'||e.key==='ArrowLeft'){
+        const n=tabs[(i+(e.key==='ArrowRight'?1:-1)+tabs.length)%tabs.length];
+        selectTab(n); n.focus();
+      }
+    });
+  });
+
+  /* ---------- Tarot kart sembolleri (özgün, ince altın çizgiler) ---------- */
+  const SYM={
+    deli:'<circle cx="50" cy="30" r="8"/><path d="M20 78 Q50 50 80 78"/><path d="M50 38v22M50 60l-10 14M50 60l10 14"/>',
+    buyucu:'<path d="M30 50c0-12 16-12 20 0s20 12 20 0-16-12-20 0-20 12-20 0z"/><path d="M50 66v16M42 82h16"/>',
+    basrahibe:'<path d="M28 20v62M72 20v62"/><path d="M56 40a12 12 0 1 0 0 20a9 9 0 1 1 0-20z"/>',
+    imparatorice:'<circle cx="50" cy="40" r="14"/><path d="M50 54v24M40 68h20"/><path d="M50 14l3 6 6 1-4 4 1 6-6-3-6 3 1-6-4-4 6-1z"/>',
+    imparator:'<rect x="30" y="38" width="40" height="40"/><path d="M30 38l8-16 12 10 12-10 8 16"/>',
+    basrahip:'<circle cx="50" cy="30" r="10"/><path d="M50 40v40M50 58h12M50 68h8"/>',
+    asiklar:'<circle cx="40" cy="50" r="18"/><circle cx="60" cy="50" r="18"/>',
+    araba:'<circle cx="50" cy="56" r="20"/><path d="M50 36v40M30 56h40M36 42l28 28M64 42L36 70"/><path d="M50 16l-8 10h16z"/>',
+    guc:'<path d="M28 58c0-10 12-10 22 0s22 10 22 0-12-10-22 0-22 10-22 0z"/><path d="M50 22c6 6 6 12 0 18-6-6-6-12 0-18z"/>',
+    ermis:'<path d="M40 30h20l-4 30H44z"/><path d="M50 30v-8M44 60h12v8H44z"/><path d="M50 44l-3 6h6z"/>',
+    cark:'<circle cx="50" cy="50" r="26"/><circle cx="50" cy="50" r="6"/><path d="M50 24v52M24 50h52M32 32l36 36M68 32L32 68"/>',
+    adalet:'<path d="M50 20v58M36 78h28M26 34h48"/><path d="M26 34l-8 18h16zM74 34l-8 18h16z"/>',
+    asilan:'<path d="M30 22h40M50 22v18"/><path d="M50 78L36 50h28z"/><circle cx="50" cy="84" r="4"/>',
+    olum:'<path d="M36 22h28L50 50l14 28H36l14-28z"/><path d="M42 72h16"/>',
+    denge:'<path d="M30 30h16l-3 18h-10zM54 52h16l-3 18h-10z"/><path d="M42 48c6 4 10 4 16 6"/>',
+    seytan:'<ellipse cx="38" cy="50" rx="10" ry="14"/><ellipse cx="62" cy="50" rx="10" ry="14"/><path d="M46 50h8"/>',
+    kule:'<path d="M38 82V36h24v46M34 36h32l-4-10H38z"/><path d="M58 12l-8 14h8l-6 12"/>',
+    yildiz:'<path d="M50 18l6 22 22 0-18 12 7 22-17-13-17 13 7-22-18-12h22z"/>',
+    ay:'<path d="M60 22a28 28 0 1 0 0 56a22 22 0 1 1 0-56z"/>',
+    gunes:'<circle cx="50" cy="50" r="14"/><path d="M50 22v-8M50 86v-8M22 50h-8M86 50h-8M30 30l-6-6M76 76l-6-6M30 70l-6 6M76 24l-6 6"/>',
+    mahkeme:'<path d="M26 64l40-24v28z"/><path d="M66 46c6 0 10 4 10 8s-4 8-10 8"/><path d="M30 30l8 6M46 22v10M62 26l-4 8"/>',
+    dunya:'<ellipse cx="50" cy="50" rx="22" ry="30"/><path d="M50 20c-6 10-6 50 0 60M30 40h40M30 60h40"/>'
+  };
+  const cardFace=(c)=>`
+    <div class="tc-face tc-front">
+      <span class="tc-no">${c.no}</span>
+      <svg class="tc-sym" viewBox="0 0 100 100" aria-hidden="true">${SYM[c.s]||''}</svg>
+      <span class="tc-name">${c.ad}</span>
+    </div>
+    <div class="tc-face tc-back" aria-hidden="true"><span class="tc-moon"></span></div>`;
+
+  /* ---------- Tarot çekilişi ---------- */
+  const DECK=window.ZBI_DESTE||[];
+  const POS=[{k:'gecmis',ad:'Geçmiş'},{k:'simdi',ad:'Şimdi'},{k:'gelecek',ad:'Gelecek'}];
+  const spread=document.getElementById('spread');
+  const reading=document.getElementById('tarotReading');
+  const shuffleBtn=document.getElementById('shuffleBtn');
+  const lead=document.getElementById('tarotLead');
+  let drawn=[], revealed=0;
+
+  // Gerçekten rastgele: tarayıcının kriptografik rastgele sayı üreteci
+  const randInt=(n)=>{ const a=new Uint32Array(1); crypto.getRandomValues(a); return a[0]%n; };
+  function draw3(){
+    const idx=[...DECK.keys()];
+    for(let i=idx.length-1;i>0;i--){ const j=randInt(i+1); [idx[i],idx[j]]=[idx[j],idx[i]]; }
+    return idx.slice(0,3).map(i=>DECK[i]);
+  }
+
+  function deal(){
+    drawn=draw3(); revealed=0;
+    reading.innerHTML='';
+    spread.innerHTML='';
+    spread.classList.remove('dealt');
+    POS.forEach((p,i)=>{
+      const slot=document.createElement('div');
+      slot.className='slot-card';
+      slot.innerHTML=`<div class="slot-label">${p.ad}</div>
+        <button type="button" class="tcard" aria-label="${p.ad} kartını aç" style="--i:${i}">${cardFace(drawn[i])}</button>`;
+      const btn=slot.querySelector('.tcard');
+      btn.addEventListener('click',()=>reveal(i,btn),{once:true});
+      spread.appendChild(slot);
+    });
+    requestAnimationFrame(()=>spread.classList.add('dealt'));
+    lead.textContent='Kartlara sırayla dokun.';
+    shuffleBtn.textContent='Yeniden karıştır';
+  }
+
+  function reveal(i,btn){
+    btn.classList.add('open');
+    btn.setAttribute('aria-label',`${POS[i].ad}: ${drawn[i].ad}`);
+    btn.disabled=true;
+    revealed++;
+    const c=drawn[i], p=POS[i];
+    const item=document.createElement('article');
+    item.className='reading-item';
+    item.innerHTML=`<div class="ri-pos">${p.ad}</div><h3>${c.ad}</h3><div class="ri-keys">${c.anahtar}</div><p>${c[p.k]}</p>`;
+    // Okuma sırası her zaman Geçmiş → Şimdi → Gelecek
+    item.dataset.order=i;
+    const after=[...reading.children].find(el=>Number(el.dataset.order)>i);
+    reading.insertBefore(item,after||null);
+    if(revealed===3) lead.textContent='Üç kart da açıldı.';
+    if(!reduceMotion) setTimeout(()=>item.scrollIntoView({behavior:'smooth',block:'nearest'}),450);
+  }
+  shuffleBtn.addEventListener('click',deal);
+
+  /* ---------- Kahve falı ---------- */
+  const CUPS=window.ZBI_KAHVE||[];
+  const cupsEl=document.getElementById('cups');
+  const esc=(t)=>String(t).replace(/[&<>"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
+  const paras=(t)=>esc(t).split(/\n\s*\n/).map(p=>`<p>${p.replace(/\n/g,'<br>')}</p>`).join('');
+  CUPS.forEach((cup,ci)=>{
+    const el=document.createElement('article');
+    el.className='cup';
+    const tabsId=`cup${ci}`;
+    el.innerHTML=`
+      <button type="button" class="cup-head" aria-expanded="false" aria-controls="${tabsId}">
+        <span class="cup-icon" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M10 18h24v10a12 12 0 0 1-24 0z"/><path d="M34 21h3a5 5 0 0 1 0 10h-4"/><path d="M8 42h30"/><path d="M18 8c-2 3 2 4 0 7M26 8c-2 3 2 4 0 7"/></svg></span>
+        <span class="cup-title">${esc(cup.baslik)}${cup.tarih?`<small>${esc(cup.tarih)}</small>`:''}</span>
+        <span class="cup-arrow" aria-hidden="true"></span>
+      </button>
+      <div class="cup-body" id="${tabsId}" hidden>
+        <div class="cup-tabs" role="tablist" aria-label="${esc(cup.baslik)} yorumları">
+          ${cup.yorumlar.map((y,yi)=>`<button type="button" role="tab" aria-selected="${yi===0}" data-y="${yi}">${esc(y.kim)}</button>`).join('')}
+        </div>
+        <div class="cup-text" role="tabpanel" aria-live="polite">${paras(cup.yorumlar[0]?.metin||'')}</div>
+      </div>`;
+    const head=el.querySelector('.cup-head'), body=el.querySelector('.cup-body'), text=el.querySelector('.cup-text');
+    head.addEventListener('click',()=>{
+      const open=head.getAttribute('aria-expanded')!=='true';
+      head.setAttribute('aria-expanded',open); body.hidden=!open; el.classList.toggle('open',open);
+    });
+    el.querySelectorAll('.cup-tabs [role=tab]').forEach(b=>b.addEventListener('click',()=>{
+      el.querySelectorAll('.cup-tabs [role=tab]').forEach(x=>x.setAttribute('aria-selected',x===b));
+      text.classList.remove('fade'); void text.offsetWidth; text.classList.add('fade');
+      text.innerHTML=paras(cup.yorumlar[Number(b.dataset.y)].metin);
+    }));
+    cupsEl.appendChild(el);
+  });
+})();

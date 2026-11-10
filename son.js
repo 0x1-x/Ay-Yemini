@@ -106,6 +106,10 @@
   audio.addEventListener('pause',render);
   audio.addEventListener('seeked',()=>sync(true));
   audio.addEventListener('ended',()=>{ render(); sing.classList.add('ended'); });
+  // Şarkı bittiğinde ya da durdurulduğunda fal sayfasına giden bağlantı belirir
+  const showNext=()=>sing.classList.add('show-next');
+  audio.addEventListener('ended',showNext);
+  audio.addEventListener('pause',()=>{ if(audio.currentTime>5) showNext(); });
   audio.addEventListener('loadedmetadata',renderTime);
 
   /* ---------- Çalar ---------- */

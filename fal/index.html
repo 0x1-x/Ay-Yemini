@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="tr" data-since="2026-10-13" data-page="fal">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#10100f">
+<title>Zamandan bir iz</title>
+<script src="/guard.js"></script>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-48.png" type="image/png" sizes="48x48">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-title" content="Zamandan bir iz">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<main>
+<section class="fal" aria-labelledby="falTitle">
+  <div class="eyebrow">Zamandan bir iz · Fal</div>
+  <h1 id="falTitle">Yıldızlar ne diyor?</h1>
+
+  <div class="fal-tabs" role="tablist" aria-label="Fal türü">
+    <button type="button" role="tab" id="tabTarot" aria-controls="panelTarot" aria-selected="true">Tarot</button>
+    <button type="button" role="tab" id="tabKahve" aria-controls="panelKahve" aria-selected="false" tabindex="-1">Kahve falı</button>
+  </div>
+
+  <!-- Tarot: Geçmiş · Şimdi · Gelecek -->
+  <div class="fal-panel" role="tabpanel" id="panelTarot" aria-labelledby="tabTarot">
+    <p class="fal-lead" id="tarotLead">Aklından bir soru geçir ve desteyi karıştır.</p>
+    <div class="spread" id="spread" aria-live="polite"></div>
+    <div class="tarot-reading" id="tarotReading" aria-live="polite"></div>
+    <button type="button" class="btn" id="shuffleBtn">Desteyi karıştır</button>
+  </div>
+
+  <!-- Kahve falı: önceden bakılmış iki fincan, farklı gözlerden yorumlar -->
+  <div class="fal-panel" role="tabpanel" id="panelKahve" aria-labelledby="tabKahve" hidden>
+    <p class="fal-lead">İki fincan, birçok göz. Okumak istediğin fincana dokun.</p>
+    <div class="cups" id="cups"></div>
+  </div>
+</section>
+</main>
+<script src="/ortak.js"></script>
+<script src="/fal/deste.js"></script>
+<script src="/fal/kahve.js"></script>
+<script src="/fal.js"></script>
+</body>
+</html>
