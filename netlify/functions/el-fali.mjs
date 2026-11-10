@@ -111,7 +111,11 @@ export default async (req) => {
       if (error.status === 401 || error.status === 403 || /API key/i.test(error.message)) {
         return json(500, { hata: "Fal servisi henüz ayarlanmadı." });
       }
-      if (error.status === 400) return json(400, { hata: "Fotoğraf işlenemedi. Başka bir fotoğraf dener misin?" });
+      if (error.status === 400) {
+        // GEÇİCİ teşhis: yalnızca x-teshis başlığıyla gelen isteklerde Google'ın mesajını döndür
+        const detay = req.headers.get("x-teshis") === "1" ? String(error.message).slice(0, 600) : undefined;
+        return json(400, { hata: "Fotoğraf işlenemedi. Başka bir fotoğraf dener misin?", detay });
+      }
       return json(502, { hata: "Fal servisine ulaşılamadı. Biraz sonra tekrar dene." });
     }
     // Gemini süre sınırı içinde yanıt vermedi
