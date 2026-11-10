@@ -106,7 +106,9 @@ export default async (req) => {
     if (error instanceof ApiError) {
       console.error(`Gemini API hatası ${error.status}:`, error.message);
       if (error.status === 429 || error.status === 503) {
-        return json(503, { hata: "Fal servisi şu an çok yoğun. Birkaç dakika sonra tekrar dene." });
+        // GEÇİCİ teşhis: yalnızca x-teshis başlığıyla gelen isteklerde Google'ın mesajını döndür
+        const detay = req.headers.get("x-teshis") === "1" ? `${error.status} ${String(error.message).slice(0, 800)}` : undefined;
+        return json(503, { hata: "Fal servisi şu an çok yoğun. Birkaç dakika sonra tekrar dene.", detay });
       }
       if (error.status === 401 || error.status === 403 || /API key/i.test(error.message)) {
         return json(500, { hata: "Fal servisi henüz ayarlanmadı." });
