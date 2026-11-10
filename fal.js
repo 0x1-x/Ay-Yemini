@@ -64,59 +64,114 @@
     </div>
     <div class="tc-face tc-back" aria-hidden="true"><span class="tc-moon"></span></div>`;
 
-  /* ---------- Tarot çekilişi ---------- */
+  /* ---------- Tarot çekilişi: 24 saatte bir açılım ----------
+     Açılım (kartlar, hangilerinin açıldığı ve çekiliş zamanı) telefonda saklanır.
+     24 saat dolmadan aynı kartlar görünür; sonra yeni açılım yapılabilir. */
   const DECK=window.ZBI_DESTE||[];
   const POS=[{k:'gecmis',ad:'Geçmiş'},{k:'simdi',ad:'Şimdi'},{k:'gelecek',ad:'Gelecek'}];
+  const DAY=24*60*60*1000;
+  const KEY=window.ZBI.KEY_TAROT;
   const spread=document.getElementById('spread');
   const reading=document.getElementById('tarotReading');
   const shuffleBtn=document.getElementById('shuffleBtn');
   const lead=document.getElementById('tarotLead');
-  let drawn=[], revealed=0;
+  let state=null; // {at, cards:[index], open:[bool]}
+  let timer=0;
+
+  const loadState=()=>{ try{ const v=JSON.parse(localStorage.getItem(KEY)); return v&&Array.isArray(v.cards)&&v.cards.length===3?v:null; }catch(e){ return null; } };
+  const saveState=()=>{ try{ localStorage.setItem(KEY,JSON.stringify(state)); }catch(e){} };
 
   // Gerçekten rastgele: tarayıcının kriptografik rastgele sayı üreteci
   const randInt=(n)=>{ const a=new Uint32Array(1); crypto.getRandomValues(a); return a[0]%n; };
   function draw3(){
     const idx=[...DECK.keys()];
     for(let i=idx.length-1;i>0;i--){ const j=randInt(i+1); [idx[i],idx[j]]=[idx[j],idx[i]]; }
-    return idx.slice(0,3).map(i=>DECK[i]);
+    return idx.slice(0,3);
   }
 
-  function deal(){
-    drawn=draw3(); revealed=0;
-    reading.innerHTML='';
-    spread.innerHTML='';
+  function addReading(i){
+    const c=DECK[state.cards[i]], p=POS[i];
+    const item=document.createElement('article');
+    item.className='reading-item';
+    item.dataset.order=i;
+    item.innerHTML=`<div class="ri-pos">${p.ad}</div><h3>${c.ad}</h3><div class="ri-keys">${c.anahtar}</div><p>${c[p.k]}</p>`;
+    // Okuma sırası her zaman Geçmiş → Şimdi → Gelecek
+    const after=[...reading.children].find(el=>Number(el.dataset.order)>i);
+    reading.insertBefore(item,after||null);
+    return item;
+  }
+
+  function updateLead(){
+    const n=state?state.open.filter(Boolean).length:0;
+    if(!state) lead.textContent='Aklından bir soru geçir ve desteyi karıştır.';
+    else if(n<3) lead.textContent='Kartlara sırayla dokun.';
+    else lead.textContent='Bugünün kartları açıldı.';
+  }
+
+  function render(animate){
+    spread.innerHTML=''; reading.innerHTML='';
     spread.classList.remove('dealt');
+    if(!state){ updateLead(); return; }
     POS.forEach((p,i)=>{
+      const c=DECK[state.cards[i]];
       const slot=document.createElement('div');
       slot.className='slot-card';
       slot.innerHTML=`<div class="slot-label">${p.ad}</div>
-        <button type="button" class="tcard" aria-label="${p.ad} kartını aç" style="--i:${i}">${cardFace(drawn[i])}</button>`;
+        <button type="button" class="tcard" aria-label="${p.ad} kartını aç" style="--i:${i}">${cardFace(c)}</button>`;
       const btn=slot.querySelector('.tcard');
-      btn.addEventListener('click',()=>reveal(i,btn),{once:true});
+      if(state.open[i]){
+        btn.classList.add('open'); btn.disabled=true; btn.setAttribute('aria-label',`${p.ad}: ${c.ad}`);
+        addReading(i);
+      }else{
+        btn.addEventListener('click',()=>reveal(i,btn),{once:true});
+      }
       spread.appendChild(slot);
     });
-    requestAnimationFrame(()=>spread.classList.add('dealt'));
-    lead.textContent='Kartlara sırayla dokun.';
-    shuffleBtn.textContent='Yeniden karıştır';
+    if(animate) requestAnimationFrame(()=>spread.classList.add('dealt'));
+    else spread.classList.add('dealt');
+    updateLead();
   }
 
   function reveal(i,btn){
     btn.classList.add('open');
-    btn.setAttribute('aria-label',`${POS[i].ad}: ${drawn[i].ad}`);
     btn.disabled=true;
-    revealed++;
-    const c=drawn[i], p=POS[i];
-    const item=document.createElement('article');
-    item.className='reading-item';
-    item.innerHTML=`<div class="ri-pos">${p.ad}</div><h3>${c.ad}</h3><div class="ri-keys">${c.anahtar}</div><p>${c[p.k]}</p>`;
-    // Okuma sırası her zaman Geçmiş → Şimdi → Gelecek
-    item.dataset.order=i;
-    const after=[...reading.children].find(el=>Number(el.dataset.order)>i);
-    reading.insertBefore(item,after||null);
-    if(revealed===3) lead.textContent='Üç kart da açıldı.';
+    btn.setAttribute('aria-label',`${POS[i].ad}: ${DECK[state.cards[i]].ad}`);
+    state.open[i]=true; saveState();
+    const item=addReading(i);
+    updateLead();
     if(!reduceMotion) setTimeout(()=>item.scrollIntoView({behavior:'smooth',block:'nearest'}),450);
   }
+
+  // Bir sonraki açılıma kalan süre
+  function updateButton(){
+    clearTimeout(timer);
+    const left=state?state.at+DAY-Date.now():0;
+    if(left>0){
+      const total=Math.ceil(left/60000), h=Math.floor(total/60), m=total%60;
+      const txt=h>0?(m?`${h} sa ${m} dk`:`${h} sa`):`${m} dk`;
+      shuffleBtn.disabled=true;
+      shuffleBtn.textContent=`Yeni açılım ${txt} sonra`;
+      timer=setTimeout(updateButton,30000);
+    }else{
+      shuffleBtn.disabled=false;
+      shuffleBtn.textContent='Desteyi karıştır';
+    }
+  }
+
+  function deal(){
+    if(state && Date.now()<state.at+DAY) return;
+    state={at:Date.now(),cards:draw3(),open:[false,false,false]};
+    saveState();
+    render(true);
+    updateButton();
+  }
   shuffleBtn.addEventListener('click',deal);
+
+  state=loadState();
+  // 24 saat dolduysa eski açılım gösterilmez; yeni açılım beklenir
+  if(state && Date.now()>=state.at+DAY) state=null;
+  render(false);
+  updateButton();
 
   /* ---------- Kahve falı ---------- */
   const CUPS=window.ZBI_KAHVE||[];
