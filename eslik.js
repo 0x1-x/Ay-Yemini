@@ -1,42 +1,33 @@
 /* =========================================================
    Zamandan bir iz — "Benimle bu müziğe eşlik eder misin?" sayfası
    - Şarkı yalnızca bu sayfada çalar (mektuplardaki listede yoktur).
-   - Sözler eslik/sozler.lrc dosyasından okunur ve şarkıyla birlikte akar.
+   - Sözler LRCLIB'den yüklenir ve şarkıyla birlikte akar.
    - Bir satıra dokununca şarkı o satıra atlar.
-   - ?zamanla ile açılınca sözleri zamanlamak için araç görünür.
    ========================================================= */
 (function(){
   const sing=document.getElementById('sing');
-  const params=new URLSearchParams(location.search);
-  const timerMode=params.has('zamanla');
-  const editMode=params.has('duzenle');
   const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   // Sayfaya yalnızca üçüncü mektup açıldıktan sonra gelinir
-  if(!timerMode && !editMode){
+  {
     let progress=null;
     try{ progress=Number(localStorage.getItem(window.ZBI.KEY_PROGRESS)||0); }catch(e){}
     if(progress!==null && progress<3){ location.replace('/'); return; }
   }
 
   /* ---------- Sözleri yükleme ----------
-     data-kaynak="lrclib": sözler sayfa açılınca LRCLIB'den (açık, ücretsiz senkron
-     söz veritabanı) çekilir; ulaşılamazsa data-lyrics dosyası kullanılır.
-     data-kaynak="dosya": yalnızca data-lyrics dosyası kullanılır.
+     Sözler sayfa açılınca LRCLIB'den (açık, ücretsiz senkron söz veritabanı)
+     çekilir; siteye kopyalanmaz. data-lrclib: LRCLIB kayıt numarası.
      data-kaydir: bütün satırları birlikte kaydırır (saniye; eksi = daha erken). */
-  // Bazı söz sitelerinin kullandığı Kiril benzeri harfleri Türkçe harflere çevir
+  // Kiril alfabesinden gelen benzer harfleri Türkçe harflere çevir
   const LOOK={'а':'a','е':'e','о':'o','р':'p','с':'c','у':'y','х':'x','і':'i','ј':'j','ѕ':'s','ԁ':'d','ɡ':'g',
               'А':'A','В':'B','Е':'E','К':'K','М':'M','Н':'H','О':'O','Р':'P','С':'C','Т':'T','Х':'X','І':'I','Ј':'J','Ѕ':'S'};
   const normalize=(t)=>t.replace(/[аеорсухіјѕԁɡАВЕКМНОРСТХІЈЅ]/g,ch=>LOOK[ch]||ch).replace(/[\u200B-\u200D\uFEFF]/g,'');
-  const fromFile=()=>fetch(sing.dataset.lyrics,{cache:'no-cache'}).then(r=>r.ok?r.text():'');
   function loadLyricsText(){
-    const id=sing.dataset.lrclib;
-    if(sing.dataset.kaynak!=='lrclib' || !id) return fromFile().then(normalize);
-    return fetch(`https://lrclib.net/api/get/${id}`)
+    return fetch(`https://lrclib.net/api/get/${sing.dataset.lrclib}`)
       .then(r=>r.ok?r.json():null)
-      .then(j=>j&&j.syncedLyrics?j.syncedLyrics:fromFile())
-      .catch(fromFile)
-      .then(normalize);
+      .then(j=>normalize((j&&j.syncedLyrics)||''))
+      .catch(()=>'');
   }
   const OFFSET=Number(sing.dataset.kaydir||0);
 
@@ -59,152 +50,6 @@
   const applyVol=()=>{ if(gain) gain.gain.value=vol; else audio.volume=vol; };
   function play(){ ensureGraph(); if(ctx&&ctx.state==='suspended') ctx.resume(); applyVol(); return audio.play().catch(()=>{}); }
   function pause(){ audio.pause(); }
-
-  /* ---------- Zamanlama aracı ---------- */
-  if(timerMode){
-    sing.hidden=true;
-    const timer=document.getElementById('timer');
-    timer.hidden=false;
-    const input=document.getElementById('timerInput');
-    const out=document.getElementById('timerOutput');
-    const startB=document.getElementById('timerStart');
-    const undoB=document.getElementById('timerUndo');
-    const tapB=document.getElementById('timerTap');
-    const copyB=document.getElementById('timerCopy');
-    const now=document.getElementById('timerNow');
-    let lines=[], stamps=[];
-    const fmt=(t)=>{ const m=Math.floor(t/60), s=t-m*60; return `[${String(m).padStart(2,'0')}:${s.toFixed(2).padStart(5,'0')}]`; };
-    const show=()=>{
-      out.value=stamps.map((t,i)=>`${fmt(t)} ${lines[i]}`).join('\n');
-      const next=lines[stamps.length];
-      now.textContent=next!==undefined?`Sıradaki satır (${stamps.length+1}/${lines.length}): ${next||'♪'}`:'Bitti. Metni kopyalayabilirsin.';
-      tapB.disabled=next===undefined;
-      undoB.disabled=!stamps.length;
-      copyB.disabled=!stamps.length;
-      dlB.disabled=stamps.length<lines.length;
-    };
-    // Bazı söz sitelerinin kopyalamaya karşı kullandığı Kiril benzeri harfleri Türkçe harflere çevir
-    // Ekranda iki satırı geçecek uzun dizeleri virgülden ya da kelime arasından böl
-    const MAX=40;
-    function splitLong(line){
-      if(line.length<=MAX) return [line];
-      const mid=line.length/2;
-      let best=-1;
-      [...line.matchAll(/[,;:]\s/g)].forEach(m=>{ const p=m.index+1; if(best<0||Math.abs(p-mid)<Math.abs(best-mid)) best=p; });
-      if(best<0||Math.abs(best-mid)>line.length*0.3){
-        best=-1;
-        [...line.matchAll(/\s/g)].forEach(m=>{ if(best<0||Math.abs(m.index-mid)<Math.abs(best-mid)) best=m.index; });
-      }
-      if(best<=0) return [line];
-      return [...splitLong(line.slice(0,best).trim()),...splitLong(line.slice(best).trim())];
-    }
-    startB.addEventListener('click',()=>{
-      lines=normalize(input.value).split('\n').map(l=>l.trim()).flatMap(l=>l?splitLong(l):['']);
-      // Art arda boş satırları teke indir; boş satır ekranda ♪ (müzikli ara) olur
-      lines=lines.filter((l,i)=>l||lines[i-1]);
-      while(lines.length && !lines[lines.length-1]) lines.pop();
-      input.value=lines.join('\n');
-      if(!lines.length){ now.textContent='Önce sözleri yapıştır.'; return; }
-      stamps=[]; audio.currentTime=0; play(); show();
-    });
-    tapB.addEventListener('click',()=>{ stamps.push(audio.currentTime); show(); });
-    undoB.addEventListener('click',()=>{ stamps.pop(); show(); });
-    const dlB=document.getElementById('timerDownload');
-    dlB.addEventListener('click',()=>{
-      const blob=new Blob([out.value+'\n'],{type:'text/plain;charset=utf-8'});
-      const a=document.createElement('a');
-      a.href=URL.createObjectURL(blob); a.download='sozler.lrc';
-      document.body.appendChild(a); a.click(); a.remove();
-      setTimeout(()=>URL.revokeObjectURL(a.href),2000);
-    });
-    copyB.addEventListener('click',async()=>{
-      try{ await navigator.clipboard.writeText(out.value); copyB.textContent='Kopyalandı'; }
-      catch(e){ out.select(); copyB.textContent='Seçildi, kopyala'; }
-    });
-    return;
-  }
-
-  /* ---------- Düzenleme aracı (?duzenle) ----------
-     Mevcut sozler.lrc dosyasını yükler; satırların zamanları tek tek ya da
-     hep birlikte kaydırılabilir, sonra düzeltilmiş dosya indirilir. */
-  if(editMode){
-    sing.hidden=true;
-    const ed=document.getElementById('editor');
-    ed.hidden=false;
-    const tbody=document.getElementById('edRows');
-    const shiftLbl=document.getElementById('edShift');
-    const playB=document.getElementById('edPlay');
-    const clock=document.getElementById('edClock');
-    let rows=[]; // {t, text, tr, timeEl}
-    const fmtT=(t)=>{ t=Math.max(0,t); const m=Math.floor(t/60), s=t-m*60; return `${m}:${s.toFixed(2).padStart(5,'0')}`; };
-    const lrcT=(t)=>{ t=Math.max(0,t); const m=Math.floor(t/60), s=t-m*60; return `[${String(m).padStart(2,'0')}:${s.toFixed(2).padStart(5,'0')}]`; };
-    let totalShift=0;
-    const refresh=()=>{ rows.forEach(r=>r.timeEl.textContent=fmtT(r.t)); shiftLbl.textContent=(totalShift>=0?'+':'')+totalShift.toFixed(2)+' sn'; };
-    const playFrom=(t)=>{ audio.currentTime=Math.max(0,t); play(); };
-    function build(){
-      tbody.innerHTML='';
-      rows.forEach((r,i)=>{
-        const tr=document.createElement('div');
-        tr.className='ed-row';
-        tr.innerHTML=`<div class="ed-top"><span class="ed-n">${i+1}</span><span class="ed-time"></span><span class="ed-text"></span></div>
-          <div class="ed-btns">
-            <button type="button" data-a="from" aria-label="${i+1}. satırın 2 saniye öncesinden çal">▶ Dinle</button>
-            <button type="button" data-a="-" aria-label="0,1 saniye öne al">−0,1</button>
-            <button type="button" data-a="+" aria-label="0,1 saniye geri al">+0,1</button>
-            <button type="button" data-a="now" class="ed-now" aria-label="Şu anki ana ayarla">Şimdi</button>
-          </div>`;
-        tr.querySelector('.ed-text').textContent=r.text||'♪';
-        r.tr=tr; r.timeEl=tr.querySelector('.ed-time');
-        tr.addEventListener('click',e=>{
-          const a=e.target.dataset&&e.target.dataset.a; if(!a) return;
-          if(a==='from') playFrom(r.t-2);
-          if(a==='-') r.t=Math.max(0,r.t-0.1);
-          if(a==='+') r.t+=0.1;
-          if(a==='now') r.t=audio.currentTime;
-          refresh();
-        });
-        tbody.appendChild(tr);
-      });
-      refresh();
-    }
-    loadLyricsText().then(txt=>{
-      txt.split(/\r?\n/).forEach(row=>{
-        if(!row.trim()||row.trim().startsWith('#')) return;
-        const m=row.match(/^\[(\d+):(\d+(?:\.\d+)?)\]\s*(.*)$/);
-        if(m) rows.push({t:Math.max(0,Number(m[1])*60+Number(m[2])+OFFSET),text:m[3]});
-      });
-      build();
-    });
-    // Bütün satırları birlikte kaydır (ör. dokunma gecikmesini telafi etmek için)
-    document.querySelectorAll('[data-shift]').forEach(b=>b.addEventListener('click',()=>{
-      const d=Number(b.dataset.shift); totalShift+=d; rows.forEach(r=>r.t=Math.max(0,r.t+d)); refresh();
-    }));
-    playB.addEventListener('click',()=>{ audio.paused?play():audio.pause(); });
-    audio.addEventListener('play',()=>playB.textContent='Durdur');
-    audio.addEventListener('pause',()=>playB.textContent='Oynat');
-    // Çalan satırı vurgula
-    let active=-1;
-    const tick=()=>{
-      const t=audio.currentTime; clock.textContent=fmtT(t);
-      let i=-1; for(let k=0;k<rows.length;k++){ if(rows[k].t<=t) i=k; }
-      if(i!==active){
-        if(rows[active]) rows[active].tr.classList.remove('is-active');
-        active=i;
-        if(rows[i]){ rows[i].tr.classList.add('is-active'); if(!audio.paused) rows[i].tr.scrollIntoView({block:'center',behavior:'smooth'}); }
-      }
-      requestAnimationFrame(tick);
-    };
-    requestAnimationFrame(tick);
-    document.getElementById('edDownload').addEventListener('click',()=>{
-      const sorted=[...rows].sort((a,b)=>a.t-b.t);
-      const out=sorted.map(r=>`${lrcT(r.t)} ${r.text}`).join('\n')+'\n';
-      const a=document.createElement('a');
-      a.href=URL.createObjectURL(new Blob([out],{type:'text/plain;charset=utf-8'}));
-      a.download='sozler.lrc'; document.body.appendChild(a); a.click(); a.remove();
-      setTimeout(()=>URL.revokeObjectURL(a.href),2000);
-    });
-    return;
-  }
 
   /* ---------- Sözler ---------- */
   document.getElementById('singTitle').textContent=sing.dataset.title||'';

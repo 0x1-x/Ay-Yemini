@@ -19,8 +19,6 @@
   data-src="/muzik/son.mp3"
   data-title="Yar ve Efsun"
   data-artist="Canfeza"
-  data-lyrics="/eslik/sozler.lrc"
-  data-kaynak="lrclib"
   data-lrclib="33457585"
   data-kaydir="0"
   aria-labelledby="singTitle">
@@ -52,50 +50,6 @@
   </div>
 </section>
 
-<!-- Zamanlama aracı: yalnızca adresin sonuna ?zamanla eklenince görünür -->
-<section class="timer" id="timer" hidden aria-label="Söz zamanlama aracı">
-  <h1>Söz zamanlama</h1>
-  <ol class="timer-steps">
-    <li>Sözleri aşağıya satır satır yapıştır.</li>
-    <li>"Başla"ya bas, şarkı çalsın.</li>
-    <li>Her satır söylenmeye başladığında büyük düğmeye dokun.</li>
-    <li>Bitince "İndir"e bas ve inen <code>sozler.lrc</code> dosyasını GitHub'da <code>eslik</code> klasörüne yükle.</li>
-  </ol>
-  <textarea id="timerInput" rows="8" placeholder="Sözleri buraya yapıştır. Uzun satırlar ve harfler kendiliğinden düzeltilir; boş satır müzikli ara olur."></textarea>
-  <div class="timer-row">
-    <button type="button" class="btn" id="timerStart">Başla</button>
-    <button type="button" class="btn" id="timerUndo" disabled>Geri al</button>
-  </div>
-  <p class="timer-now" id="timerNow" aria-live="polite"></p>
-  <button type="button" class="timer-tap" id="timerTap" disabled>Satır başladı</button>
-  <textarea id="timerOutput" rows="8" readonly placeholder="Zamanlanmış sözler burada çıkar"></textarea>
-  <div class="timer-row">
-    <button type="button" class="btn" id="timerDownload" disabled>İndir</button>
-    <button type="button" class="btn" id="timerCopy" disabled>Kopyala</button>
-  </div>
-</section>
-<!-- Düzenleme aracı: yalnızca adresin sonuna ?duzenle eklenince görünür -->
-<section class="timer editor" id="editor" hidden aria-label="Söz zamanlarını düzeltme aracı">
-  <h1>Söz zamanlarını düzelt</h1>
-  <ol class="timer-steps">
-    <li>Oynat'a bas ve sözleri izle; çalan satır vurgulanır.</li>
-    <li>Hepsi geç ya da erken kalıyorsa üstteki düğmelerle hepsini birlikte kaydır.</li>
-    <li>Tek bir satır kayıyorsa: "Dinle" ile o satırı tekrar dinle, −0,1 / +0,1 ile düzelt ya da tam başladığı anda "Şimdi"ye bas.</li>
-    <li>Bitince "İndir"e bas ve dosyayı GitHub'da <code>eslik</code> klasörüne yükle.</li>
-  </ol>
-  <div class="ed-bar">
-    <button type="button" class="btn" id="edPlay">Oynat</button>
-    <span class="ed-clock" id="edClock">0:00.00</span>
-  </div>
-  <div class="ed-shift">
-    <span>Hepsini kaydır:</span>
-    <button type="button" data-shift="-0.1">−0,1</button>
-    <button type="button" data-shift="0.1">+0,1</button>
-    <span class="ed-shift-val" id="edShift">+0.00 sn</span>
-  </div>
-  <div class="ed-rows" id="edRows"></div>
-  <button type="button" class="btn ed-download" id="edDownload">İndir</button>
-</section>
 </main>
 <script src="/ortak.js"></script>
 <script src="/eslik.js"></script>
