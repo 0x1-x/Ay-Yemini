@@ -31,3 +31,11 @@ window.ZBI={
   }
   document.body.prepend(sky);
 })();
+
+window.ZBILog=function(olay,detay){
+  try{
+    if(document.documentElement.classList.contains('not-phone')) return;
+    const body=JSON.stringify(Object.assign({olay},detay||{}));
+    fetch('/api/log',{method:'POST',headers:{'content-type':'application/json'},body,keepalive:true}).catch(()=>{});
+  }catch(e){}
+};

@@ -17,6 +17,7 @@
   const fileLabel=document.getElementById('palmFileLabel');
   const readingEl=document.getElementById('palmReading');
   let stream=null, busy=false;
+  const log=(olay,d)=>window.ZBILog&&window.ZBILog(olay,d);
 
   const load=()=>{ try{ const v=JSON.parse(localStorage.getItem(KEY)); return v&&v.at&&v.okuma?v:null; }catch(e){ return null; } };
   const save=(v)=>{ try{ localStorage.setItem(KEY,JSON.stringify(v)); }catch(e){} };
@@ -65,7 +66,7 @@
       status.textContent='Kameraya izin verilmedi. Ayarlardan izin verebilir ya da fotoğraf seçebilirsin.';
     }
   }
-  camBtn.addEventListener('click',startCamera);
+  camBtn.addEventListener('click',()=>{ if(camBtn.textContent==='Tekrar dene') log('el_yeniden'); startCamera(); });
 
   function toJpeg(source,w,h){
     const scale=Math.min(1,1024/Math.max(w,h));
@@ -90,17 +91,20 @@
       const data=await r.json().catch(()=>({}));
       if(!r.ok) throw new Error(data.hata||'Fal servisine ulaşılamadı. Biraz sonra tekrar dene.');
       if(!data.el_mi){
+        log('el_gecersiz');
         status.textContent=data.mesaj||'Avucun net görünmedi. Biraz daha ışıkta tekrar dener misin?';
         camBtn.hidden=false; camBtn.textContent='Tekrar dene'; fileLabel.hidden=false;
         return;
       }
       const v={at:Date.now(),okuma:data};
       save(v);
+      log('el_analiz');
       status.textContent='';
       lead.textContent='Avucunun hikâyesi';
       showReading(data,!reduceMotion);
       lockUntil(v.at);
     }catch(e){
+      log('el_hata');
       status.textContent=e.message;
       camBtn.hidden=false; camBtn.textContent='Tekrar dene'; fileLabel.hidden=false;
     }finally{
@@ -110,13 +114,14 @@
   }
 
   capBtn.addEventListener('click',()=>{
-    if(!video.videoWidth) return;
+    if(!video.videoWidth||busy) return;
+    log('el_foto',{kaynak:'kamera'});
     read(toJpeg(video,video.videoWidth,video.videoHeight));
   });
   fileInput.addEventListener('change',()=>{
     const f=fileInput.files&&fileInput.files[0]; if(!f) return;
     const img=new Image();
-    img.onload=()=>{ read(toJpeg(img,img.naturalWidth,img.naturalHeight)); URL.revokeObjectURL(img.src); };
+    img.onload=()=>{ if(!busy) log('el_foto',{kaynak:'dosya'}); read(toJpeg(img,img.naturalWidth,img.naturalHeight)); URL.revokeObjectURL(img.src); };
     img.onerror=()=>{ status.textContent='Bu fotoğraf açılamadı.'; };
     img.src=URL.createObjectURL(f);
     fileInput.value='';

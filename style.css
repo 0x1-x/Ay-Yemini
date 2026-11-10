@@ -658,8 +658,8 @@ html[data-page="son"] main{padding-top:max(20px,env(safe-area-inset-top));paddin
 .cup-text.fade{animation:fadeIn .5s var(--ease) both}
 
 /* Son sayfadan fal sayfasına geçiş */
-.sing-next{display:block;margin:10px auto 0;font-style:italic;font-size:15px;color:var(--gold);text-decoration:none;opacity:0;pointer-events:none;transition:opacity 1.2s var(--ease)}
-.sing.show-next .sing-next{opacity:.9;pointer-events:auto}
+.sing-next.btn{display:block;width:fit-content;max-width:100%;margin:14px auto 0;padding:12px 22px;font-style:italic;font-size:14px;letter-spacing:.01em;text-wrap:balance;text-transform:none;opacity:0;pointer-events:none;transition:opacity 1.2s var(--ease),background-color .3s,border-color .3s}
+.sing.show-next .sing-next{opacity:1;pointer-events:auto}
 
 /* ---------- Üçüncü kart: yeniden okutulunca açılan menü ---------- */
 .revisit{width:min(100%,420px);text-align:center;animation:fadeIn 1.4s var(--ease) both}

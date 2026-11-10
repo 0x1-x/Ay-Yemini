@@ -7,6 +7,8 @@
     try{ progress=Number(localStorage.getItem(window.ZBI.KEY_PROGRESS)||0); }catch(e){}
     if(progress!==null && progress<3){ location.replace('/'); return; }
   }
+  const log=(olay,d)=>window.ZBILog&&window.ZBILog(olay,d);
+  log('son_acildi');
 
   const LOOK={'а':'a','е':'e','о':'o','р':'p','с':'c','у':'y','х':'x','і':'i','ј':'j','ѕ':'s','ԁ':'d','ɡ':'g',
               'А':'A','В':'B','Е':'E','К':'K','М':'M','Н':'H','О':'O','Р':'P','С':'C','Т':'T','Х':'X','І':'I','Ј':'J','Ѕ':'S'};
@@ -89,7 +91,7 @@
   audio.addEventListener('play',()=>{ if(!raf) raf=requestAnimationFrame(loop); render(); });
   audio.addEventListener('pause',render);
   audio.addEventListener('seeked',()=>sync(true));
-  audio.addEventListener('ended',()=>{ render(); sing.classList.add('ended'); });
+  audio.addEventListener('ended',()=>{ render(); sing.classList.add('ended'); log('muzik_bitti'); });
   const showNext=()=>sing.classList.add('show-next');
   audio.addEventListener('ended',showNext);
   audio.addEventListener('pause',()=>{ if(audio.currentTime>5) showNext(); });
@@ -105,6 +107,9 @@
   const ICON_PAUSE='<svg viewBox="0 0 24 24"><path d="M8.5 5.5v13M15.5 5.5v13"/></svg>';
   const fmt=(s)=>{ s=Math.max(0,Math.floor(s||0)); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); };
 
+  let playLogged=false;
+  audio.addEventListener('playing',()=>{ if(!playLogged){ playLogged=true; log('muzik_basladi'); } });
+  audio.addEventListener('ended',()=>{ playLogged=false; });
   function begin(){ sing.classList.add('started'); sing.classList.remove('ended'); play(); }
   startB.addEventListener('click',begin);
   playB.addEventListener('click',()=>{ if(audio.paused) begin(); else pause(); });
@@ -130,6 +135,9 @@
     renderTime();
   }
   render();
+
+  const nextB=sing.querySelector('.sing-next');
+  nextB.addEventListener('click',()=>{ log('fal_dugme'); setTimeout(()=>location.assign('/fal/'),120); });
 
   if('mediaSession' in navigator){
     try{

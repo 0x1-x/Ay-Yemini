@@ -19,6 +19,8 @@ const storage={
 const ORDINAL=['','ilk','ikinci','üçüncü'];
 const progress=storage.get();
 const locked=STEP>1 && progress!==null && progress<STEP-1;
+const log=(olay)=>window.ZBILog&&window.ZBILog(olay,{mektup:STEP});
+log(locked?'mektup_kilitli':'mektup_acildi');
 
 let done=false;
 try{ done=localStorage.getItem(window.ZBI.KEY_DONE)==='1'; }catch(e){}
@@ -38,6 +40,7 @@ if(STEP===3 && done && !locked){
     </nav>`;
   scene.hidden=true;
   scene.parentNode.insertBefore(menu,scene);
+  log('menu_acildi');
   menu.querySelector('#revisitLetter').addEventListener('click',()=>{
     menu.remove();
     scene.hidden=false;
@@ -56,6 +59,7 @@ function revealNote(){
   scene.classList.add('revealed');
   hint.textContent=readingHint;
   storage.set(STEP);
+  log('mektup_okundu');
   window.scrollTo({top:0,behavior:reduceMotion?'auto':'smooth'});
   note.focus({preventScroll:true});
 }
@@ -88,6 +92,7 @@ const setRing=(p)=>ringFill.setAttribute('stroke-dashoffset',(RING_C*(1-p)).toFi
 function breakSeal(){
   if(opened||locked||holdDone) return;
   holdDone=true;
+  log('muhur_kirildi');
   setRing(1);
   scene.classList.remove('holding');
   scene.classList.add('seal-broken');
@@ -138,7 +143,9 @@ function holdEnd(){
 openBtn.addEventListener('click',e=>{ if(e.detail===0) breakSeal(); });
 
 function sealLetter(){
+  if(nextBtn.disabled) return;
   nextBtn.disabled=true;
+  log('mektup_muhurlendi');
   openBtn.setAttribute('aria-expanded','false');
   const showOpenEnvelope=()=>{
     scene.classList.remove('closing','revealed','leaving','seal-broken');
@@ -267,6 +274,7 @@ function startFinale(){
   const lidEnd=hasMoon?5600:2800;
   const finish=()=>{
     finale.classList.add('done');
+    log('saat_bitti');
     if(STEP===3){ try{ localStorage.setItem(window.ZBI.KEY_DONE,'1'); }catch(e){} }
   };
 

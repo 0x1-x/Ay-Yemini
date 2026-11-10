@@ -4,9 +4,16 @@
   let progress=null;
   try{ progress=Number(localStorage.getItem(window.ZBI.KEY_PROGRESS)||0); }catch(e){}
   if(progress!==null && progress<3){ location.replace('/'); return; }
+  const log=(olay,d)=>window.ZBILog&&window.ZBILog(olay,d);
+  log('fal_acildi');
+  const TAB_LOG={tabTarot:'tarot_sekme',tabKahve:'kahve_sekme',tabEl:'el_sekme'};
 
   const tabs=[...document.querySelectorAll('.fal-tabs [role=tab]')];
   function selectTab(tab){
+    if(tab.getAttribute('aria-selected')!=='true' && TAB_LOG[tab.id]){
+      log(TAB_LOG[tab.id]);
+      if(tab.id==='tabEl'){ try{ const s=JSON.parse(localStorage.getItem(window.ZBI.KEY_PALM)); if(s&&s.at&&Date.now()<s.at+24*60*60*1000) log('el_tekrar'); }catch(e){} }
+    }
     tabs.forEach(t=>{
       const on=t===tab;
       t.setAttribute('aria-selected',on);
@@ -150,6 +157,7 @@
     const item=addReading(i);
     updateLead();
     renderSummary(true);
+    if(state.open.every(Boolean)) log('tarot_acildi',{kartlar:POS.map((p,k)=>`${p.ad}: ${DECK[state.cards[k]].ad}${isRev(k)?' (ters)':''}`).join(' · ')});
     if(!reduceMotion) setTimeout(()=>item.scrollIntoView({behavior:'smooth',block:'nearest'}),450);
   }
 
@@ -172,6 +180,7 @@
     if(state && Date.now()<state.at+DAY) return;
     state={at:Date.now(),cards:draw3(),rev:[0,1,2].map(()=>randInt(2)===1),open:[false,false,false]};
     saveState();
+    log('tarot_karistirildi');
     render(true);
     updateButton();
   }
@@ -179,6 +188,7 @@
 
   state=loadState();
   if(state && Date.now()>=state.at+DAY) state=null;
+  if(state && state.open.some(Boolean)) log('tarot_tekrar');
   render(false);
   updateButton();
 
@@ -206,8 +216,14 @@
     head.addEventListener('click',()=>{
       const open=head.getAttribute('aria-expanded')!=='true';
       head.setAttribute('aria-expanded',open); body.inert=!open; el.classList.toggle('open',open);
+      if(open){
+        log('kahve_fincan',{fincan:ci+1});
+        const sel=el.querySelector('.cup-tabs [aria-selected=true]');
+        if(sel) log('kahve_okundu',{fincan:ci+1,ai:cup.yorumlar[Number(sel.dataset.y)].kim});
+      }
     });
     el.querySelectorAll('.cup-tabs [role=tab]').forEach(b=>b.addEventListener('click',()=>{
+      if(b.getAttribute('aria-selected')!=='true') log('kahve_okundu',{fincan:ci+1,ai:cup.yorumlar[Number(b.dataset.y)].kim});
       el.querySelectorAll('.cup-tabs [role=tab]').forEach(x=>x.setAttribute('aria-selected',x===b));
       text.classList.remove('fade'); void text.offsetWidth; text.classList.add('fade');
       text.innerHTML=paras(cup.yorumlar[Number(b.dataset.y)].metin);

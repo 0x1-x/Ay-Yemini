@@ -1,3 +1,4 @@
+window.ZBILog&&window.ZBILog('giris');
 const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const gate=document.getElementById('gate');
 if(gate){
@@ -30,6 +31,7 @@ if(gate){
     msg.textContent='';
     input.blur();
     try{ localStorage.setItem(window.ZBI.KEY_GATE,'1'); }catch(e){}
+    window.ZBILog&&window.ZBILog('sifre');
     setTimeout(()=>gate.classList.add('leaving'),reduceMotion?0:700);
     setTimeout(()=>{
       gate.hidden=true;
@@ -70,3 +72,6 @@ if(gate){
   input.addEventListener('blur',()=>field.classList.remove('focused'));
   render();
 }
+
+const entryGo=document.querySelector('.entry-go');
+if(entryGo) entryGo.addEventListener('click',()=>window.ZBILog&&window.ZBILog('mektuba_gec'));
