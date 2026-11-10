@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="tr" data-since="2026-10-13" data-page="eslik">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#10100f">
+<title>Zamandan bir iz</title>
+<script src="/guard.js"></script>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-48.png" type="image/png" sizes="48x48">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-title" content="Zamandan bir iz">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<main>
+<!-- Şarkı bilgisi: dosya, ad, sanatçı ve sözler (LRC) buradan okunur -->
+<section class="sing" id="sing"
+  data-src="/muzik/son.mp3"
+  data-title="Son şarkı"
+  data-artist="Sanatçı"
+  data-lyrics="/eslik/sozler.lrc"
+  aria-labelledby="singTitle">
+  <header class="sing-head">
+    <div class="sing-cover" aria-hidden="true"><img src="/muzik/kapak.jpg" alt="" onerror="this.remove()"></div>
+    <div class="sing-meta">
+      <div class="eyebrow">Zamandan bir iz · Son</div>
+      <h1 class="sing-title" id="singTitle"></h1>
+      <div class="sing-artist" id="singArtist"></div>
+    </div>
+  </header>
+
+  <div class="lyrics-wrap">
+    <ol class="lyrics" id="lyrics" aria-label="Şarkı sözleri"></ol>
+    <button type="button" class="sing-start" id="singStart">
+      <span class="sing-start-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5.5l11 6.5-11 6.5z"/></svg></span>
+      <span>Başlat</span>
+    </button>
+  </div>
+
+  <div class="sing-player" role="region" aria-label="Müzik çalar">
+    <div class="pl-bar" id="singBar" role="slider" aria-label="Şarkının ilerleyişi" tabindex="0"><span class="pl-fill"></span></div>
+    <div class="pl-times"><span id="singCur">0:00</span><span id="singDur">0:00</span></div>
+    <div class="pl-controls sing-controls">
+      <button type="button" class="pl-btn" id="singDown" aria-label="Sesi kıs"><svg viewBox="0 0 24 24"><path d="M4 9.5h3.5L12 6v12l-4.5-3.5H4z"/><path d="M15.5 12h4"/></svg></button>
+      <button type="button" class="pl-btn pl-play" id="singPlay" aria-label="Oynat"></button>
+      <button type="button" class="pl-btn" id="singUp" aria-label="Sesi aç"><svg viewBox="0 0 24 24"><path d="M4 9.5h3.5L12 6v12l-4.5-3.5H4z"/><path d="M15.5 12h5M18 9.5v5"/></svg></button>
+    </div>
+  </div>
+</section>
+
+<!-- Zamanlama aracı: yalnızca adresin sonuna ?zamanla eklenince görünür -->
+<section class="timer" id="timer" hidden aria-label="Söz zamanlama aracı">
+  <h1>Söz zamanlama</h1>
+  <ol class="timer-steps">
+    <li>Sözleri aşağıya satır satır yapıştır.</li>
+    <li>"Başla"ya bas, şarkı çalsın.</li>
+    <li>Her satır söylenmeye başladığında büyük düğmeye dokun.</li>
+    <li>Bitince çıkan metni kopyala ve <code>eslik/sozler.lrc</code> dosyasına yapıştır.</li>
+  </ol>
+  <textarea id="timerInput" rows="8" placeholder="Her satıra bir söz satırı"></textarea>
+  <div class="timer-row">
+    <button type="button" class="btn" id="timerStart">Başla</button>
+    <button type="button" class="btn" id="timerUndo" disabled>Geri al</button>
+  </div>
+  <p class="timer-now" id="timerNow" aria-live="polite"></p>
+  <button type="button" class="timer-tap" id="timerTap" disabled>Satır başladı</button>
+  <textarea id="timerOutput" rows="8" readonly placeholder="Zamanlanmış sözler burada çıkar"></textarea>
+  <button type="button" class="btn" id="timerCopy" disabled>Kopyala</button>
+</section>
+</main>
+<script src="/ortak.js"></script>
+<script src="/eslik.js"></script>
+</body>
+</html>

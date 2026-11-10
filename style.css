@@ -550,6 +550,64 @@ html.mw-open main{padding-bottom:calc(max(28px,env(safe-area-inset-bottom)) + 20
 .mw-bubble:focus-visible{outline:1px solid var(--gold);outline-offset:4px}
 @keyframes bubbleGlow{50%{opacity:1}}
 
+/* ---------- Üçüncü mektubun sonundaki buton ---------- */
+.finale-next{display:inline-block;margin-top:30px;text-decoration:none;letter-spacing:.14em;line-height:1.5;max-width:300px;opacity:0;transform:translateY(8px);pointer-events:none;transition:opacity 1.2s var(--ease) 3.6s,transform 1.2s var(--ease) 3.6s}
+.finale.done .finale-next{opacity:1;transform:none;pointer-events:auto}
+
+/* ---------- Eşlik sayfası: akan sözler ---------- */
+html[data-page="eslik"] main{padding-top:max(20px,env(safe-area-inset-top));padding-bottom:max(16px,env(safe-area-inset-bottom))}
+.sing{width:min(100%,440px);height:calc(100svh - max(20px,env(safe-area-inset-top)) - max(16px,env(safe-area-inset-bottom)));display:flex;flex-direction:column;animation:fadeIn 1.4s var(--ease) both}
+.sing[hidden]{display:none}
+.sing-head{display:flex;align-items:center;gap:14px;text-align:left;padding:4px 4px 0}
+.sing-cover{position:relative;width:58px;height:58px;flex:none;border-radius:50%;overflow:hidden;background:radial-gradient(circle at 50% 40%,#2a241c,#121110);box-shadow:inset 0 0 0 1px #c5a36a55,0 6px 18px #0008}
+.sing-cover img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.sing-meta{min-width:0}
+.sing-meta .eyebrow{font-size:9px}
+.sing-title{font-size:22px;margin:4px 0 0;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sing-artist{font:13px/1.4 var(--sans);color:var(--muted)}
+.lyrics-wrap{position:relative;flex:1;min-height:0;margin:14px 0 6px}
+.lyrics{
+  list-style:none;margin:0;padding:0 6px;height:100%;overflow-y:auto;scrollbar-width:none;text-align:center;
+  -webkit-mask:linear-gradient(180deg,transparent,#000 22%,#000 78%,transparent);
+          mask:linear-gradient(180deg,transparent,#000 22%,#000 78%,transparent);
+}
+.lyrics::-webkit-scrollbar{display:none}
+/* Üstte ve altta liste yüksekliğinin yarısı kadar boşluk: ilk ve son satır da ortaya gelebilsin */
+.lyrics:before,.lyrics:after{content:"";display:block;height:50%}
+.lyric{
+  font-size:clamp(20px,5.6vw,24px);line-height:1.45;padding:9px 0;color:#efe6d6;opacity:.32;cursor:pointer;
+  transform:scale(.94);transform-origin:center;transition:opacity .6s var(--ease),transform .6s var(--ease),color .6s var(--ease),text-shadow .6s var(--ease);
+}
+.lyric.is-past{opacity:.18}
+.lyric.is-active{opacity:1;transform:scale(1);color:#f6eedc;text-shadow:0 0 18px #c5a36a55}
+.lyric-gap{font-size:18px;color:var(--gold)}
+.sing-start{
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:12px;
+  background:none;border:0;color:var(--text);font:500 11px var(--sans);letter-spacing:.3em;text-transform:uppercase;cursor:pointer;
+  transition:opacity .6s var(--ease)
+}
+.sing-start-icon{width:74px;height:74px;border-radius:50%;border:1px solid var(--gold-soft);display:grid;place-items:center;background:#17151399;box-shadow:0 0 30px #c5a36a26}
+.sing-start-icon svg{width:26px;height:26px;fill:#e8d8b9;margin-left:4px}
+.sing.started .sing-start{opacity:0;pointer-events:none}
+.sing:not(.started) .lyric{opacity:.2}
+.sing-player{padding:4px 6px 0}
+.sing-controls{justify-content:center;gap:34px}
+.sing-player .pl-play{width:56px;height:56px;border:1px solid var(--gold-soft)}
+.sing-player .pl-play svg:not(.i-fill){stroke-width:2}
+
+/* ---------- Söz zamanlama aracı (?zamanla) ---------- */
+.timer{width:min(100%,520px);text-align:left;font:15px/1.6 var(--sans);color:var(--text)}
+.timer[hidden]{display:none}
+.timer h1{font-size:26px;margin:0 0 8px}
+.timer-steps{color:var(--muted);padding-left:20px;margin:0 0 14px}
+.timer code{color:var(--gold)}
+.timer textarea{width:100%;background:#1a1815;color:var(--text);border:1px solid #c5a36a40;border-radius:6px;padding:10px;font:14px/1.5 var(--sans);margin:6px 0 10px}
+.timer-row{display:flex;gap:10px}
+.timer-now{min-height:3em;color:var(--gold);margin:10px 0}
+.timer-tap{width:100%;min-height:110px;border-radius:14px;border:1px solid var(--gold);background:#c5a36a1f;color:var(--text);font:600 18px var(--sans);letter-spacing:.06em;margin-bottom:12px;touch-action:manipulation}
+.timer-tap:active{background:#c5a36a44}
+.timer-tap:disabled{opacity:.35}
+
 @media (prefers-reduced-motion:reduce){
   *,*:before,*:after{animation:none!important;transition:none!important}
 }
