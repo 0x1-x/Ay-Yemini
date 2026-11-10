@@ -124,18 +124,25 @@ export default async (req) => {
 
   try {
     let response, lastError;
+    const attempts = []; // GEÇİCİ teşhis için her denemenin özeti
     for (const model of MODELS) {
+      const t0 = Date.now();
       try {
         response = await generate(model);
+        attempts.push({ model, sonuc: "ok", ms: Date.now() - t0 });
         console.log(`El falı yanıtı: ${model}`);
         break;
       } catch (error) {
         lastError = error;
+        attempts.push({ model, sonuc: error?.status || error?.name, ms: Date.now() - t0, mesaj: String(error?.message).slice(0, 160) });
         console.warn(`${model} kullanılamadı:`, error?.status || error?.name, String(error?.message).slice(0, 200));
         if (!isRetryable(error) || deadline - Date.now() < 2500) break;
       }
     }
-    if (!response) throw lastError;
+    if (!response) {
+      if (req.headers.get("x-teshis") === "1") return json(502, { hata: "Teşhis", denemeler: attempts });
+      throw lastError;
+    }
 
     // Güvenlik filtresi istemi ya da yanıtı durdurduysa metin boş gelir
     const text = response.text;
