@@ -326,6 +326,8 @@ h1{font-size:clamp(30px,8vw,42px);font-weight:400;letter-spacing:.02em;line-heig
 .capsule-text{display:none}
 .capsule.open .capsule-seal,.capsule.open .capsule-when,.capsule.open .capsule-count{display:none}
 .capsule.open .capsule-text{display:block;text-align:left}
+.capsule.open:before{content:"Zaman kapsülü";display:block;margin-bottom:14px;font:500 10px/1.6 var(--sans);letter-spacing:.24em;text-transform:uppercase;color:#806c4d}
+.note .capsule-text{font-style:italic;margin:0}
 
 /* ---------- Yalnızca telefon ---------- */
 html.not-phone main{display:none}

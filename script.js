@@ -257,8 +257,8 @@ function setHands(a){
 
 // İbreleri döndürür: sabit hızla döner, sonra yavaşlayarak hedefte durur.
 // dir: 1 ileri, -1 geri. Akrep yelkovanın 1/12 hızıyla döner.
-function spinHands(end,dir,delay,done){
-  const SPEED=600, FAST=1.4, SLOW=4.4;
+function spinHands(end,dir,delay,done,opts={}){
+  const SPEED=600, FAST=opts.fast??1.4, SLOW=opts.slow??4.4;
   const TOTAL=SPEED*(FAST+SLOW/2);
   const at=(d)=>{ const left=TOTAL-d; setHands({h:end.h-dir*left/12,m:end.m-dir*left}); };
   at(0);
@@ -315,6 +315,22 @@ function startFinale(){
         showNow(); tickTimer=setInterval(showNow,1000); finish();
       });
       return dur;
+    }
+    if(mode==='past'){
+      // Geçmiş: ibreler bugünkü saatten geriye döner (ilk ana geri sarılır),
+      // kısa bir duraksamadan sonra ileri akar ve bugünkü saatte durur.
+      const nowAngles=(ms=0)=>{ const d=new Date(Date.now()+ms); return anglesFor(d.getHours(),d.getMinutes(),d.getSeconds()); };
+      if(reduceMotion){ setHands(nowAngles()); finish(); return; }
+      const opts={fast:1.0,slow:2.6};
+      const TRAVEL=600*(opts.fast+opts.slow/2); // yelkovanın her yöndeki yolu
+      const legMs=(opts.fast+opts.slow)*1000, pause=600;
+      const start=nowAngles(lidEnd);
+      const back={h:start.h-TRAVEL/12,m:start.m-TRAVEL};
+      spinHands(back,-1,lidEnd,()=>{
+        const target=nowAngles(pause+legMs);
+        spinHands(target,1,pause,()=>setTimeout(finish,400),opts);
+      },opts);
+      return;
     }
     const [hh,mm]=(finale.dataset.time||'04:38').split(':').map(Number);
     const end=anglesFor(hh,mm);
