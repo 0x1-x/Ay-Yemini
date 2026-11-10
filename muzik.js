@@ -192,59 +192,92 @@
   bar.addEventListener('keydown',e=>{ if(e.key==='ArrowRight') audio.currentTime+=5; if(e.key==='ArrowLeft') audio.currentTime-=5; });
 
   /* ---------- Açık / yuvarlak geçişi ---------- */
+  const panel=$('.mw-panel');
+  const SIZE=64, MARGIN=10, GAP=12;
+  const bounds=()=>{
+    const vv=window.visualViewport;
+    return {w:vv?vv.width:innerWidth, h:vv?vv.height:innerHeight};
+  };
+  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  let bx=0, by=0; // yuvarlağın şu anki yeri (piksel)
+  // iPhone'un alt çubuğu için bırakılan boşluğu ölçmek üzere görünmez öğe
+  const safeProbe=document.createElement('div');
+  safeProbe.style.cssText='position:fixed;left:0;bottom:0;width:0;height:0;padding-bottom:env(safe-area-inset-bottom);visibility:hidden;pointer-events:none';
+  el.appendChild(safeProbe);
+
+  /* ---------- Açık kartı yuvarlağın olduğu yerde aç ----------
+     Yuvarlak alt yarıdaysa kart yukarı, üst yarıdaysa aşağı doğru açılır;
+     kenarlardan taşmaz. Yuvarlak hiç taşınmadıysa kart altta ortalanır. */
+  function placePanel(){
+    const {w,h}=bounds();
+    const pw=panel.offsetWidth, ph=panel.offsetHeight;
+    const safeBottom=safeProbe.offsetHeight;
+    let left,top;
+    if(!st.pos){
+      left=(w-pw)/2; top=h-ph-Math.max(12,safeBottom);
+    }else{
+      const cx=bx+SIZE/2;
+      left=clamp(cx-pw/2,GAP,w-pw-GAP);
+      top=(by+SIZE/2>h/2) ? by+SIZE-ph : by;
+      top=clamp(top,GAP,h-ph-Math.max(GAP,safeBottom));
+    }
+    panel.style.left=left+'px';
+    panel.style.top=top+'px';
+    // Kart, yuvarlağın içinden büyüyormuş gibi açılsın
+    panel.style.transformOrigin=`${bx+SIZE/2-left}px ${by+SIZE/2-top}px`;
+  }
+
   function setOpen(open,focus=true){
     st.open=open;
+    if(open) placePanel();
     el.classList.toggle('is-open',open);
     el.classList.toggle('is-bubble',!open);
-    document.documentElement.classList.toggle('mw-open',open);
+    document.documentElement.classList.toggle('mw-open',open && !st.pos);
     save();
     if(focus){ (open?$('.pl-play'):bubble).focus({preventScroll:true}); }
   }
 
-  /* ---------- Yuvarlağı sürükleme ---------- */
-  const SIZE=64, MARGIN=10;
-  const bounds=()=>{
-    const vv=window.visualViewport;
-    const w=vv?vv.width:innerWidth, h=vv?vv.height:innerHeight;
-    return {w,h};
-  };
+  /* ---------- Yuvarlağı sürükleme ----------
+     Konum transform ile verilir ve ekran yenilemesine bağlı güncellenir;
+     böylece iPhone'da sayfa düzeni her harekette yeniden hesaplanmaz. */
+  const setBubble=(x,y)=>{ bx=x; by=y; bubble.style.transform=`translate3d(${x}px,${y}px,0)`; };
   function placeBubble(){
     const {w,h}=bounds();
     let x,y;
     if(st.pos){ x=st.pos.x*w; y=st.pos.y*h; }
     else{ x=w-SIZE-16; y=h-SIZE-28; } // varsayılan: sağ alt köşe
-    x=Math.max(MARGIN,Math.min(w-SIZE-MARGIN,x));
-    y=Math.max(MARGIN,Math.min(h-SIZE-MARGIN,y));
-    bubble.style.left=x+'px'; bubble.style.top=y+'px';
-    return {x,y};
+    setBubble(clamp(x,MARGIN,w-SIZE-MARGIN),clamp(y,MARGIN,h-SIZE-MARGIN));
+    if(st.open) placePanel();
   }
-  let drag=null;
+  let drag=null, raf=0, lastDragEnd=0;
   bubble.addEventListener('pointerdown',e=>{
     if(e.button!==undefined && e.button!==0) return;
-    const r=bubble.getBoundingClientRect();
-    drag={id:e.pointerId,sx:e.clientX,sy:e.clientY,ox:r.left,oy:r.top,moved:false};
+    drag={id:e.pointerId,sx:e.clientX,sy:e.clientY,ox:bx,oy:by,x:bx,y:by,moved:false};
     try{ bubble.setPointerCapture(e.pointerId); }catch(_){}
   });
   bubble.addEventListener('pointermove',e=>{
     if(!drag||e.pointerId!==drag.id) return;
     const dx=e.clientX-drag.sx, dy=e.clientY-drag.sy;
-    if(!drag.moved && Math.hypot(dx,dy)<6) return;
-    drag.moved=true;
-    bubble.classList.add('dragging');
+    if(!drag.moved){
+      if(Math.hypot(dx,dy)<6) return;
+      drag.moved=true;
+      bubble.classList.add('dragging');
+    }
     const {w,h}=bounds();
-    const x=Math.max(MARGIN,Math.min(w-SIZE-MARGIN,drag.ox+dx));
-    const y=Math.max(MARGIN,Math.min(h-SIZE-MARGIN,drag.oy+dy));
-    bubble.style.left=x+'px'; bubble.style.top=y+'px';
+    drag.x=clamp(drag.ox+dx,MARGIN,w-SIZE-MARGIN);
+    drag.y=clamp(drag.oy+dy,MARGIN,h-SIZE-MARGIN);
+    if(!raf) raf=requestAnimationFrame(()=>{ raf=0; if(drag) setBubble(drag.x,drag.y); });
   });
-  let lastDragEnd=0;
   const endDrag=(e)=>{
     if(!drag||e.pointerId!==drag.id) return;
-    const moved=drag.moved; drag=null;
+    const d=drag; drag=null;
+    if(raf){ cancelAnimationFrame(raf); raf=0; }
     bubble.classList.remove('dragging');
-    if(moved){
+    if(d.moved){
+      setBubble(d.x,d.y);
       lastDragEnd=Date.now();
-      const {w,h}=bounds(), r=bubble.getBoundingClientRect();
-      st.pos={x:r.left/w,y:r.top/h}; save();
+      const {w,h}=bounds();
+      st.pos={x:d.x/w,y:d.y/h}; save();
     }
   };
   bubble.addEventListener('pointerup',endDrag);
