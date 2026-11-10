@@ -75,18 +75,6 @@ function allowedOrigin(req) {
 }
 
 export default async (req) => {
-  // GEÇİCİ teşhis: x-teshis başlığıyla yapılan GET, anahtarla kullanılabilen modelleri listeler
-  if (req.method === "GET" && req.headers.get("x-teshis") === "1" && process.env.GEMINI_API_KEY) {
-    try {
-      const names = [];
-      for await (const m of await ai.models.list()) {
-        if ((m.supportedActions || []).includes("generateContent")) names.push(m.name);
-      }
-      return json(200, { modeller: names });
-    } catch (e) {
-      return json(500, { hata: String(e?.message || e).slice(0, 300) });
-    }
-  }
   if (req.method !== "POST") return json(405, { hata: "Yalnızca POST kabul edilir." });
   if (!allowedOrigin(req)) return json(403, { hata: "Bu istek kabul edilmedi." });
   if (!process.env.GEMINI_API_KEY) {
@@ -130,25 +118,18 @@ export default async (req) => {
 
   try {
     let response, lastError;
-    const attempts = []; // GEÇİCİ teşhis için her denemenin özeti
     for (const model of MODELS) {
-      const t0 = Date.now();
       try {
         response = await generate(model);
-        attempts.push({ model, sonuc: "ok", ms: Date.now() - t0 });
         console.log(`El falı yanıtı: ${model}`);
         break;
       } catch (error) {
         lastError = error;
-        attempts.push({ model, sonuc: error?.status || error?.name, ms: Date.now() - t0, mesaj: String(error?.message).slice(0, 160) });
         console.warn(`${model} kullanılamadı:`, error?.status || error?.name, String(error?.message).slice(0, 200));
         if (!isRetryable(error) || deadline - Date.now() < 2500) break;
       }
     }
-    if (!response) {
-      if (req.headers.get("x-teshis") === "1") return json(502, { hata: "Teşhis", denemeler: attempts });
-      throw lastError;
-    }
+    if (!response) throw lastError;
 
     // Güvenlik filtresi istemi ya da yanıtı durdurduysa metin boş gelir
     const text = response.text;
@@ -160,18 +141,13 @@ export default async (req) => {
     if (error instanceof ApiError) {
       console.error(`Gemini API hatası ${error.status}:`, error.message);
       if (error.status === 429 || error.status === 503) {
-        // GEÇİCİ teşhis: yalnızca x-teshis başlığıyla gelen isteklerde Google'ın mesajını döndür
-        const detay = req.headers.get("x-teshis") === "1" ? `${error.status} ${String(error.message).slice(0, 800)}` : undefined;
-        return json(503, { hata: "Fal servisi şu an çok yoğun. Birkaç dakika sonra tekrar dene.", detay });
+        return json(503, { hata: "Fal servisi şu an çok yoğun. Birkaç dakika sonra tekrar dene." });
       }
       if (error.status === 401 || error.status === 403 || /API key/i.test(error.message)) {
         return json(500, { hata: "Fal servisi henüz ayarlanmadı." });
       }
-      if (error.status === 400) {
-        // GEÇİCİ teşhis: yalnızca x-teshis başlığıyla gelen isteklerde Google'ın mesajını döndür
-        const detay = req.headers.get("x-teshis") === "1" ? String(error.message).slice(0, 600) : undefined;
-        return json(400, { hata: "Fotoğraf işlenemedi. Başka bir fotoğraf dener misin?", detay });
-      }
+      if (error.status === 400) return json(400, { hata: "Fotoğraf işlenemedi. Başka bir fotoğraf dener misin?" });
+      if (error.status === 504) return json(504, { hata: "Yorum beklenenden uzun sürdü. Birkaç dakika sonra tekrar dene." });
       return json(502, { hata: "Fal servisine ulaşılamadı. Biraz sonra tekrar dene." });
     }
     // Gemini süre sınırı içinde yanıt vermedi
