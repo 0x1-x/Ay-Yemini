@@ -1,6 +1,10 @@
-# Eski .html adresleri uzantısız adreslere yönlenir
-/ikinci.html   /ikinci   301!
-/ucuncu.html   /ucuncu   301!
+# Eski adresler yeni adreslere yönlenir (kartlara eski adres yazıldıysa da çalışsın)
+/ikinci.html   /mektup-2   301!
+/ikinci        /mektup-2   301!
+/ikinci/       /mektup-2/  301!
+/ucuncu.html   /mektup-3   301!
+/ucuncu        /mektup-3   301!
+/ucuncu/       /mektup-3/  301!
 # Son sayfanın eski adresi
-/eslik    /son   301!
-/eslik/   /son/  301!
+/eslik         /son        301!
+/eslik/        /son/       301!
