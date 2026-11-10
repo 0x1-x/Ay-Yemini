@@ -19,6 +19,27 @@
     if(progress!==null && progress<3){ location.replace('/'); return; }
   }
 
+  /* ---------- Sözleri yükleme ----------
+     data-kaynak="lrclib": sözler sayfa açılınca LRCLIB'den (açık, ücretsiz senkron
+     söz veritabanı) çekilir; ulaşılamazsa data-lyrics dosyası kullanılır.
+     data-kaynak="dosya": yalnızca data-lyrics dosyası kullanılır.
+     data-kaydir: bütün satırları birlikte kaydırır (saniye; eksi = daha erken). */
+  // Bazı söz sitelerinin kullandığı Kiril benzeri harfleri Türkçe harflere çevir
+  const LOOK={'а':'a','е':'e','о':'o','р':'p','с':'c','у':'y','х':'x','і':'i','ј':'j','ѕ':'s','ԁ':'d','ɡ':'g',
+              'А':'A','В':'B','Е':'E','К':'K','М':'M','Н':'H','О':'O','Р':'P','С':'C','Т':'T','Х':'X','І':'I','Ј':'J','Ѕ':'S'};
+  const normalize=(t)=>t.replace(/[аеорсухіјѕԁɡАВЕКМНОРСТХІЈЅ]/g,ch=>LOOK[ch]||ch).replace(/[\u200B-\u200D\uFEFF]/g,'');
+  const fromFile=()=>fetch(sing.dataset.lyrics,{cache:'no-cache'}).then(r=>r.ok?r.text():'');
+  function loadLyricsText(){
+    const id=sing.dataset.lrclib;
+    if(sing.dataset.kaynak!=='lrclib' || !id) return fromFile().then(normalize);
+    return fetch(`https://lrclib.net/api/get/${id}`)
+      .then(r=>r.ok?r.json():null)
+      .then(j=>j&&j.syncedLyrics?j.syncedLyrics:fromFile())
+      .catch(fromFile)
+      .then(normalize);
+  }
+  const OFFSET=Number(sing.dataset.kaydir||0);
+
   /* ---------- Ses: iPhone'da ses düzeyi için Web Audio kazancı ---------- */
   const audio=new Audio(sing.dataset.src);
   audio.preload='auto';
@@ -63,9 +84,6 @@
       dlB.disabled=stamps.length<lines.length;
     };
     // Bazı söz sitelerinin kopyalamaya karşı kullandığı Kiril benzeri harfleri Türkçe harflere çevir
-    const LOOK={'а':'a','е':'e','о':'o','р':'p','с':'c','у':'y','х':'x','і':'i','ј':'j','ѕ':'s','ԁ':'d','ɡ':'g',
-                'А':'A','В':'B','Е':'E','К':'K','М':'M','Н':'H','О':'O','Р':'P','С':'C','Т':'T','Х':'X','І':'I','Ј':'J','Ѕ':'S'};
-    const normalize=(t)=>t.replace(/[аеорсухіјѕԁɡАВЕКМНОРСТХІЈЅ]/g,ch=>LOOK[ch]||ch).replace(/[\u200B-\u200D\uFEFF]/g,'');
     // Ekranda iki satırı geçecek uzun dizeleri virgülden ya da kelime arasından böl
     const MAX=40;
     function splitLong(line){
@@ -149,11 +167,11 @@
       });
       refresh();
     }
-    fetch(sing.dataset.lyrics,{cache:'no-cache'}).then(r=>r.text()).then(txt=>{
+    loadLyricsText().then(txt=>{
       txt.split(/\r?\n/).forEach(row=>{
         if(!row.trim()||row.trim().startsWith('#')) return;
         const m=row.match(/^\[(\d+):(\d+(?:\.\d+)?)\]\s*(.*)$/);
-        if(m) rows.push({t:Number(m[1])*60+Number(m[2]),text:m[3]});
+        if(m) rows.push({t:Math.max(0,Number(m[1])*60+Number(m[2])+OFFSET),text:m[3]});
       });
       build();
     });
@@ -201,7 +219,7 @@
       const times=[...row.matchAll(/\[(\d+):(\d+(?:\.\d+)?)\]/g)];
       if(!times.length) return;
       const text=row.replace(/\[[^\]]*\]/g,'').trim();
-      times.forEach(m=>out.push({t:Number(m[1])*60+Number(m[2]),text}));
+      times.forEach(m=>out.push({t:Math.max(0,Number(m[1])*60+Number(m[2])+OFFSET),text}));
     });
     return out.sort((a,b)=>a.t-b.t);
   }
@@ -215,7 +233,7 @@
       l.el=li; list.appendChild(li);
     });
   }
-  fetch(sing.dataset.lyrics,{cache:'no-cache'}).then(r=>r.ok?r.text():'').then(t=>{
+  loadLyricsText().then(t=>{
     lines=parseLRC(t||'');
     if(!lines.length) lines=[{t:0,text:'♪'}];
     renderLyrics(); sync(true);
