@@ -6,7 +6,7 @@
 // Çalarda yuvarlağın içinde duran kapak fotoğrafı (şarkı değişse de aynı kalır).
 // Fotoğrafı muzik/ klasörüne koyup yolunu yaz, ör. '/muzik/kapak.jpg'.
 // Boş bırakılırsa (null) hilal görünür.
-window.ZBI_KAPAK=null;
+window.ZBI_KAPAK='/muzik/kapak.jpg';
 
 window.ZBI_LISTE=[
   { baslik:'Örnek şarkı 1', sanatci:'Deneme sesi', dosya:'/muzik/ornek-1.mp3' },
