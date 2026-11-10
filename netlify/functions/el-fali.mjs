@@ -87,7 +87,7 @@ export default async (req) => {
         responseJsonSchema: SCHEMA,
         maxOutputTokens: 1500,
         // Kısa bir yorum için uzun düşünmeye gerek yok: yanıt süresini kısaltır
-        thinkingConfig: { thinkingLevel: ThinkingLevel.MINIMAL },
+        thinkingConfig: { thinkingLevel: ThinkingLevel.LOW }, // bu model MINIMAL desteklemiyor
         // Süreyi sınırla; yoğunlukta en fazla bir kez, kısa bekleyerek yeniden dene
         httpOptions: {
           timeout: GEMINI_TIMEOUT_MS,
