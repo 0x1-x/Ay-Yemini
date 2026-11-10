@@ -92,6 +92,8 @@
   const prev=()=>{ if(audio.currentTime>3) audio.currentTime=0; else go(st.i-1); };
   function setVol(v){ st.vol=Math.max(0,Math.min(1,Math.round(v*10)/10)); applyVolume(); render(); save(); }
 
+  // Tek şarkılık listede şarkı bitince başa dönüp yeniden çalar
+  audio.loop=LIST.length===1;
   audio.addEventListener('ended',next);
   audio.addEventListener('play',render);
   // Giriş sayfası: müzik ilk kez başladığında, kartlar arasında müziğin
@@ -184,6 +186,8 @@
       </svg>
     </button>`;
   document.body.appendChild(el);
+  // Tek şarkı varsa önceki/sonraki düğmeleri gizlenir
+  if(LIST.length===1) el.classList.add('single');
   // Kapak fotoğrafı yüklenemezse hilal görünsün
   el.querySelectorAll('.mw-cover img').forEach(img=>img.addEventListener('error',()=>img.remove()));
 
