@@ -7,7 +7,8 @@ window.ZBI={
   KEY_GATE:'zamandan-bir-iz:kapi',       // şifre bir kez doğru girildi mi
   KEY_MUSIC:'zamandan-bir-iz:muzik',     // çalan şarkı, yeri, ses düzeyi
   KEY_DONE:'zamandan-bir-iz:tamamlandi',  // üçüncü mektubun saat sahnesi sonuna kadar izlendi mi
-  KEY_TAROT:'zamandan-bir-iz:tarot'       // günün tarot açılımı (24 saatte bir)
+  KEY_TAROT:'zamandan-bir-iz:tarot',      // günün tarot açılımı (24 saatte bir)
+  KEY_PALM:'zamandan-bir-iz:elfali'       // günün el falı (24 saatte bir)
 };
 
 // Hediyeden önce deneme yapabilmek için: adresin sonuna ?sifirla eklenirse

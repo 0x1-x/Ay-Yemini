@@ -1,0 +1,7 @@
+# Site statik dosyalardan oluşur; yalnızca el falı için bir Netlify fonksiyonu vardır.
+[build]
+  publish = "."
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
