@@ -55,6 +55,18 @@ function allowedOrigin(req) {
 }
 
 export default async (req) => {
+  // GEÇİCİ teşhis: x-teshis başlığıyla yapılan GET, anahtarla kullanılabilen modelleri listeler
+  if (req.method === "GET" && req.headers.get("x-teshis") === "1" && process.env.GEMINI_API_KEY) {
+    try {
+      const names = [];
+      for await (const m of await ai.models.list()) {
+        if ((m.supportedActions || []).includes("generateContent")) names.push(m.name);
+      }
+      return json(200, { modeller: names });
+    } catch (e) {
+      return json(500, { hata: String(e?.message || e).slice(0, 300) });
+    }
+  }
   if (req.method !== "POST") return json(405, { hata: "Yalnızca POST kabul edilir." });
   if (!allowedOrigin(req)) return json(403, { hata: "Bu istek kabul edilmedi." });
   if (!process.env.GEMINI_API_KEY) {
