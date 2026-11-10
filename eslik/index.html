@@ -56,9 +56,9 @@
     <li>Sözleri aşağıya satır satır yapıştır.</li>
     <li>"Başla"ya bas, şarkı çalsın.</li>
     <li>Her satır söylenmeye başladığında büyük düğmeye dokun.</li>
-    <li>Bitince çıkan metni kopyala ve <code>eslik/sozler.lrc</code> dosyasına yapıştır.</li>
+    <li>Bitince "İndir"e bas ve inen <code>sozler.lrc</code> dosyasını GitHub'da <code>eslik</code> klasörüne yükle.</li>
   </ol>
-  <textarea id="timerInput" rows="8" placeholder="Her satıra bir söz satırı"></textarea>
+  <textarea id="timerInput" rows="8" placeholder="Sözleri buraya yapıştır. Uzun satırlar ve harfler kendiliğinden düzeltilir; boş satır müzikli ara olur."></textarea>
   <div class="timer-row">
     <button type="button" class="btn" id="timerStart">Başla</button>
     <button type="button" class="btn" id="timerUndo" disabled>Geri al</button>
@@ -66,7 +66,10 @@
   <p class="timer-now" id="timerNow" aria-live="polite"></p>
   <button type="button" class="timer-tap" id="timerTap" disabled>Satır başladı</button>
   <textarea id="timerOutput" rows="8" readonly placeholder="Zamanlanmış sözler burada çıkar"></textarea>
-  <button type="button" class="btn" id="timerCopy" disabled>Kopyala</button>
+  <div class="timer-row">
+    <button type="button" class="btn" id="timerDownload" disabled>İndir</button>
+    <button type="button" class="btn" id="timerCopy" disabled>Kopyala</button>
+  </div>
 </section>
 </main>
 <script src="/ortak.js"></script>

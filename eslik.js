@@ -58,15 +58,45 @@
       tapB.disabled=next===undefined;
       undoB.disabled=!stamps.length;
       copyB.disabled=!stamps.length;
+      dlB.disabled=stamps.length<lines.length;
     };
+    // Bazı söz sitelerinin kopyalamaya karşı kullandığı Kiril benzeri harfleri Türkçe harflere çevir
+    const LOOK={'а':'a','е':'e','о':'o','р':'p','с':'c','у':'y','х':'x','і':'i','ј':'j','ѕ':'s','ԁ':'d','ɡ':'g',
+                'А':'A','В':'B','Е':'E','К':'K','М':'M','Н':'H','О':'O','Р':'P','С':'C','Т':'T','Х':'X','І':'I','Ј':'J','Ѕ':'S'};
+    const normalize=(t)=>t.replace(/[аеорсухіјѕԁɡАВЕКМНОРСТХІЈЅ]/g,ch=>LOOK[ch]||ch).replace(/[\u200B-\u200D\uFEFF]/g,'');
+    // Ekranda iki satırı geçecek uzun dizeleri virgülden ya da kelime arasından böl
+    const MAX=40;
+    function splitLong(line){
+      if(line.length<=MAX) return [line];
+      const mid=line.length/2;
+      let best=-1;
+      [...line.matchAll(/[,;:]\s/g)].forEach(m=>{ const p=m.index+1; if(best<0||Math.abs(p-mid)<Math.abs(best-mid)) best=p; });
+      if(best<0||Math.abs(best-mid)>line.length*0.3){
+        best=-1;
+        [...line.matchAll(/\s/g)].forEach(m=>{ if(best<0||Math.abs(m.index-mid)<Math.abs(best-mid)) best=m.index; });
+      }
+      if(best<=0) return [line];
+      return [...splitLong(line.slice(0,best).trim()),...splitLong(line.slice(best).trim())];
+    }
     startB.addEventListener('click',()=>{
-      lines=input.value.split('\n').map(l=>l.trim());
+      lines=normalize(input.value).split('\n').map(l=>l.trim()).flatMap(l=>l?splitLong(l):['']);
+      // Art arda boş satırları teke indir; boş satır ekranda ♪ (müzikli ara) olur
+      lines=lines.filter((l,i)=>l||lines[i-1]);
       while(lines.length && !lines[lines.length-1]) lines.pop();
+      input.value=lines.join('\n');
       if(!lines.length){ now.textContent='Önce sözleri yapıştır.'; return; }
       stamps=[]; audio.currentTime=0; play(); show();
     });
     tapB.addEventListener('click',()=>{ stamps.push(audio.currentTime); show(); });
     undoB.addEventListener('click',()=>{ stamps.pop(); show(); });
+    const dlB=document.getElementById('timerDownload');
+    dlB.addEventListener('click',()=>{
+      const blob=new Blob([out.value+'\n'],{type:'text/plain;charset=utf-8'});
+      const a=document.createElement('a');
+      a.href=URL.createObjectURL(blob); a.download='sozler.lrc';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+    });
     copyB.addEventListener('click',async()=>{
       try{ await navigator.clipboard.writeText(out.value); copyB.textContent='Kopyalandı'; }
       catch(e){ out.select(); copyB.textContent='Seçildi, kopyala'; }
