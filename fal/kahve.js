@@ -1,9 +1,3 @@
-/* =========================================================
-   Kahve falı yorumları
-   Her fincan için başlık, isteğe bağlı tarih ve yorumlar.
-   Her yorumun "kim" alanı sekmenin adı olur: Claude, Gemini, ChatGPT.
-   Paragraflar arasında boş satır bırakılabilir.
-   ========================================================= */
 window.ZBI_KAHVE=[
   {
     baslik:'Birinci fincan',

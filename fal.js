@@ -1,17 +1,10 @@
-/* =========================================================
-   Zamandan bir iz — Fal sayfası
-   - Tarot: 22 Büyük Arkana'dan gerçekten rastgele 3 kart (Geçmiş · Şimdi · Gelecek)
-   - Kahve falı: önceden bakılmış iki fincanın farklı gözlerden yorumları
-   ========================================================= */
 (function(){
   const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  // Sayfaya yalnızca üçüncü mektup açıldıktan sonra gelinir
   let progress=null;
   try{ progress=Number(localStorage.getItem(window.ZBI.KEY_PROGRESS)||0); }catch(e){}
   if(progress!==null && progress<3){ location.replace('/'); return; }
 
-  /* ---------- Sekmeler ---------- */
   const tabs=[...document.querySelectorAll('.fal-tabs [role=tab]')];
   function selectTab(tab){
     tabs.forEach(t=>{
@@ -31,7 +24,6 @@
     });
   });
 
-  /* ---------- Tarot kart sembolleri (özgün, ince altın çizgiler) ---------- */
   const SYM={
     deli:'<circle cx="50" cy="30" r="8"/><path d="M20 78 Q50 50 80 78"/><path d="M50 38v22M50 60l-10 14M50 60l10 14"/>',
     buyucu:'<path d="M30 50c0-12 16-12 20 0s20 12 20 0-16-12-20 0-20 12-20 0z"/><path d="M50 66v16M42 82h16"/>',
@@ -64,9 +56,6 @@
     </div>
     <div class="tc-face tc-back" aria-hidden="true"><span class="tc-moon"></span></div>`;
 
-  /* ---------- Tarot çekilişi: 24 saatte bir açılım ----------
-     Açılım (kartlar, hangilerinin açıldığı ve çekiliş zamanı) telefonda saklanır.
-     24 saat dolmadan aynı kartlar görünür; sonra yeni açılım yapılabilir. */
   const DECK=window.ZBI_DESTE||[];
   const POS=[{k:'gecmis',ad:'Geçmiş'},{k:'simdi',ad:'Şimdi'},{k:'gelecek',ad:'Gelecek'}];
   const DAY=24*60*60*1000;
@@ -75,13 +64,12 @@
   const reading=document.getElementById('tarotReading');
   const shuffleBtn=document.getElementById('shuffleBtn');
   const lead=document.getElementById('tarotLead');
-  let state=null; // {at, cards:[index], rev:[bool], open:[bool]}
+  let state=null;
   let timer=0;
 
   const loadState=()=>{ try{ const v=JSON.parse(localStorage.getItem(KEY)); return v&&Array.isArray(v.cards)&&v.cards.length===3?v:null; }catch(e){ return null; } };
   const saveState=()=>{ try{ localStorage.setItem(KEY,JSON.stringify(state)); }catch(e){} };
 
-  // Gerçekten rastgele: tarayıcının kriptografik rastgele sayı üreteci
   const randInt=(n)=>{ const a=new Uint32Array(1); crypto.getRandomValues(a); return a[0]%n; };
   function draw3(){
     const idx=[...DECK.keys()];
@@ -97,7 +85,6 @@
     item.dataset.order=i;
     const text=r?c['t'+p.k]:c[p.k];
     item.innerHTML=`<div class="ri-pos">${p.ad}${r?' <span class="ri-rev">Ters</span>':''}</div><h3>${c.ad}</h3><div class="ri-keys">${r?c.tanahtar:c.anahtar}</div><p>${text}</p>`;
-    // Okuma sırası her zaman Geçmiş → Şimdi → Gelecek
     const after=[...reading.children].find(el=>Number(el.dataset.order)>i);
     reading.insertBefore(item,after||null);
     return item;
@@ -135,9 +122,6 @@
     renderSummary(false);
   }
 
-  /* ---------- Üç kartın birleşik yorumu ----------
-     Kartların kısa özetleri (düz: ozet, ters: tozet) ters kart sayısına göre
-     seçilen bir kalıpla tek bir hikâyede birleşir. */
   function renderSummary(animate){
     const old=document.getElementById('tarotSummary'); if(old) old.remove();
     if(!state || state.open.some(o=>!o)) return;
@@ -145,13 +129,9 @@
     const n=[0,1,2].filter(isRev).length;
     const cap=(t)=>t.charAt(0).toLocaleUpperCase('tr')+t.slice(1);
     const T=[
-      // 0 ters: akan bir hikâye
       `${cap(z[0])} seni bugüne taşıdı. Şimdi hayatında ${z[1]} var ve önünde ${z[2]} seni bekliyor. Kartlar aynı yöne bakıyor: yolun açık, akış senden yana.`,
-      // 1 ters
       `${cap(z[0])} ile başlayan yol, bugün ${z[1]} ile sürüyor; yarın ise ${z[2]} getiriyor. Kartlardan biri ters: hikâyenin bir yerinde küçük bir duraksama var, ama yönü değiştirmiyor.`,
-      // 2 ters
       `Geçmişte ${z[0]}, bugün ${z[1]}, gelecekte ${z[2]}. İki kart ters geldi: enerjinin bir kısmı içe dönmüş. Acele etmeden, kendine zaman tanıdığında düğümler kendiliğinden çözülecek.`,
-      // 3 ters
       `${cap(z[0])}, ${z[1]} ve ${z[2]}. Üç kart da ters: şu an dışarıya değil içeriye bakma zamanı. Bu bir uyarı değil, bir dinlenme çağrısı; yeniden başlamadan önce nefes al.`
     ];
     const el=document.createElement('article');
@@ -173,7 +153,6 @@
     if(!reduceMotion) setTimeout(()=>item.scrollIntoView({behavior:'smooth',block:'nearest'}),450);
   }
 
-  // Bir sonraki açılıma kalan süre
   function updateButton(){
     clearTimeout(timer);
     const left=state?state.at+DAY-Date.now():0;
@@ -199,12 +178,10 @@
   shuffleBtn.addEventListener('click',deal);
 
   state=loadState();
-  // 24 saat dolduysa eski açılım gösterilmez; yeni açılım beklenir
   if(state && Date.now()>=state.at+DAY) state=null;
   render(false);
   updateButton();
 
-  /* ---------- Kahve falı ---------- */
   const CUPS=window.ZBI_KAHVE||[];
   const cupsEl=document.getElementById('cups');
   const esc=(t)=>String(t).replace(/[&<>"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));

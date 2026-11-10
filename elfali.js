@@ -1,10 +1,3 @@
-/* =========================================================
-   Zamandan bir iz — El falı
-   - Canlı kamera görüntüsü, üstünde el silueti
-   - "Avucumu oku": kare yakalanır, küçültülür, /api/el-fali'ye gönderilir
-   - Yorum geldiğinde bölüm bölüm açılır
-   - Günde bir okuma: yorum telefonda 24 saat saklanır
-   ========================================================= */
 (function(){
   const panel=document.getElementById('panelEl');
   if(!panel) return;
@@ -29,7 +22,6 @@
   const save=(v)=>{ try{ localStorage.setItem(KEY,JSON.stringify(v)); }catch(e){} };
   const esc=(t)=>String(t||'').replace(/[&<>"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
 
-  /* ---------- Okumayı göster ---------- */
   const PARTS=[['hayat','Hayat çizgisi'],['kalp','Kalp çizgisi'],['akil','Akıl çizgisi'],['kader','Kader çizgisi'],['genel','Elinin hikâyesi']];
   function showReading(okuma,animate){
     readingEl.innerHTML='';
@@ -52,7 +44,6 @@
     status.textContent=`Yeni okuma ${txt} sonra.`;
   }
 
-  /* ---------- Kamera ---------- */
   function stopCamera(){
     if(stream){ stream.getTracks().forEach(t=>t.stop()); stream=null; }
     video.srcObject=null;
@@ -76,7 +67,6 @@
   }
   camBtn.addEventListener('click',startCamera);
 
-  /* ---------- Fotoğrafı hazırla: en fazla 1024 piksel, JPEG ---------- */
   function toJpeg(source,w,h){
     const scale=Math.min(1,1024/Math.max(w,h));
     const c=document.createElement('canvas');
@@ -132,7 +122,6 @@
     fileInput.value='';
   });
 
-  // Sekmeden çıkınca kamerayı kapat (pil ve gizlilik)
   document.querySelectorAll('.fal-tabs [role=tab]').forEach(t=>t.addEventListener('click',()=>{
     if(t.id==='tabEl' || busy || !stream) return;
     stopCamera();
@@ -143,7 +132,6 @@
   }));
   document.addEventListener('visibilitychange',()=>{ if(document.hidden) stopCamera(); });
 
-  /* ---------- Bugün bakıldıysa aynı yorumu göster ---------- */
   const saved=load();
   if(saved && Date.now()<saved.at+DAY){
     placeholder.hidden=true;

@@ -1,4 +1,3 @@
-# Site statik dosyalardan oluşur; yalnızca el falı için bir Netlify fonksiyonu vardır.
 [build]
   publish = "."
 

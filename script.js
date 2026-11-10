@@ -1,7 +1,3 @@
-/* =========================================================
-   Zamandan bir iz — mektup sayfalarının kodu
-   Her mektup <html data-step="1|2|3" data-era="past|now|future"> taşır.
-   ========================================================= */
 const root=document.documentElement;
 const STEP=Number(root.dataset.step||1);
 const scene=document.getElementById('scene');
@@ -9,15 +5,11 @@ const openBtn=document.getElementById('openBtn');
 const nextBtn=document.getElementById('nextBtn');
 const note=document.getElementById('note');
 const hint=document.getElementById('hint');
-// Sayfaya özel yazılar HTML'deki data- alanlarından gelir
 const readingHint=scene.dataset.hintReading;
 const sealedHint=scene.dataset.hintSealed;
 const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 let opened=false;
 
-/* ---------- Sıra kilidi: kartlar yalnızca sırayla açılır ----------
-   Telefon, açılan en son mektubun numarasını hatırlar. Depolama
-   kullanılamazsa (ör. bazı gizli sekmeler) kilit devre dışı kalır. */
 const PROGRESS_KEY=window.ZBI.KEY_PROGRESS;
 const storage={
   get(){ try{ return Number(localStorage.getItem(PROGRESS_KEY)||0); }catch(e){ return null; } },
@@ -28,9 +20,6 @@ const ORDINAL=['','ilk','ikinci','üçüncü'];
 const progress=storage.get();
 const locked=STEP>1 && progress!==null && progress<STEP-1;
 
-/* ---------- Üçüncü kart sonraki okutuşlarda: menü ----------
-   Saat sahnesi bir kez sonuna kadar izlendiyse mektup baştan oynamak
-   yerine üç seçenekli bir menü açılır. */
 let done=false;
 try{ done=localStorage.getItem(window.ZBI.KEY_DONE)==='1'; }catch(e){}
 if(STEP===3 && done && !locked){
@@ -81,9 +70,6 @@ function openLetter(){
   setTimeout(revealNote,1900);
 }
 
-/* ---------- Mührü kırmak: basılı tutunca halka dolar, mühür kırılır ----------
-   Zarfa ya da butona basılı tutulur. Klavye ve ekran okuyucuyla
-   butona basmak (tıklama, detail=0) mührü doğrudan kırar. */
 const envelope=document.getElementById('envelope');
 const sealEl=envelope.querySelector('.seal');
 const HOLD_MS=1300;
@@ -105,7 +91,6 @@ function breakSeal(){
   setRing(1);
   scene.classList.remove('holding');
   scene.classList.add('seal-broken');
-  // Mührün iki parçası ayrılır
   ['left','right'].forEach(side=>{
     const shard=sealEl.cloneNode(true);
     shard.className='seal seal-shard seal-shard-'+side;
@@ -150,23 +135,19 @@ function holdEnd(){
   el.addEventListener('pointercancel',holdEnd);
   el.addEventListener('contextmenu',e=>e.preventDefault());
 });
-// Klavye / ekran okuyucu: tıklama olayı işaretçi olmadan gelirse doğrudan kır
 openBtn.addEventListener('click',e=>{ if(e.detail===0) breakSeal(); });
 
-/* ---------- Mektubu mühürle ---------- */
 function sealLetter(){
   nextBtn.disabled=true;
   openBtn.setAttribute('aria-expanded','false');
-  // Zarfı açık hâliyle geri getir
   const showOpenEnvelope=()=>{
     scene.classList.remove('closing','revealed','leaving','seal-broken');
     envelope.querySelectorAll('.seal-shard').forEach(s=>s.remove());
     ring.hidden=true;
     scene.classList.add('sealing');
-    hint.textContent=''; // Kapanış cümlesi yalnızca saat sahnesinde, bir kez görünür
+    hint.textContent='';
     window.scrollTo({top:0,behavior:'auto'});
   };
-  // Kâğıt iner, kapak kapanır, mühür belirir; ardından saat sahnesi
   const closeEnvelope=()=>{
     scene.classList.remove('opening');
     hint.focus({preventScroll:true});
@@ -179,10 +160,6 @@ function sealLetter(){
 }
 nextBtn.addEventListener('click',sealLetter);
 
-/* ---------- Köstekli saat ----------
-   data-mode="past"   : ibreler geriye döner, data-time'da durur
-   data-mode="now"    : ibreler gerçek saate gelir ve saniye ibresiyle işler
-   data-mode="future" : ibreler ileri döner, data-time'da durur */
 const finale=document.getElementById('finale');
 const SVG_NS='http://www.w3.org/2000/svg';
 const CX=120, CY=160;
@@ -250,8 +227,6 @@ function setHands(a){
   t('handH',a.h); t('handM',a.m); if(a.s!==undefined) t('handS',a.s);
 }
 
-// İbreleri döndürür: sabit hızla döner, sonra yavaşlayarak hedefte durur.
-// dir: 1 ileri, -1 geri. Akrep yelkovanın 1/12 hızıyla döner.
 function spinHands(end,dir,delay,done,opts={}){
   const SPEED=600, FAST=opts.fast??1.4, SLOW=opts.slow??4.4;
   const TOTAL=SPEED*(FAST+SLOW/2);
@@ -281,7 +256,6 @@ function startFinale(){
   const timeEl=document.getElementById('finaleTime');
   const textEl=document.getElementById('finaleText');
   if(!textEl.textContent.trim()) textEl.textContent=sealedHint;
-  // Son cümle: kelimeler tek tek belirsin
   if(textEl.classList.contains('finale-quote')){
     const words=textEl.textContent.trim().split(/\s+/);
     textEl.setAttribute('aria-label',words.join(' '));
@@ -290,11 +264,9 @@ function startFinale(){
   buildWatch(watch,mode==='now');
   if(!hasMoon) finale.classList.add('no-moon');
 
-  // Kapağın açılışının bittiği an (CSS'teki gecikmelerle aynı)
   const lidEnd=hasMoon?5600:2800;
   const finish=()=>{
     finale.classList.add('done');
-    // Son mektup sonuna kadar izlendi: kart bir daha okutulunca menü açılır
     if(STEP===3){ try{ localStorage.setItem(window.ZBI.KEY_DONE,'1'); }catch(e){} }
   };
 
@@ -314,7 +286,6 @@ function startFinale(){
 
     if(mode==='now'){
       if(reduceMotion){ showNow(); tickTimer=setInterval(showNow,1000); finish(); return; }
-      // Döndükten sonra varılacak gerçek saat
       const dur=spinHands((()=>{ const d=new Date(Date.now()+lidEnd+5800); return anglesFor(d.getHours(),d.getMinutes(),d.getSeconds()); })(),1,lidEnd,()=>{
         finale.classList.add('ticking');
         showNow(); tickTimer=setInterval(showNow,1000); finish();
@@ -322,12 +293,10 @@ function startFinale(){
       return dur;
     }
     if(mode==='past' && !finale.dataset.time){
-      // Geçmiş (saat verilmemişse): ibreler bugünkü saatten geriye döner (ilk ana geri sarılır),
-      // kısa bir duraksamadan sonra ileri akar ve bugünkü saatte durur.
       const nowAngles=(ms=0)=>{ const d=new Date(Date.now()+ms); return anglesFor(d.getHours(),d.getMinutes(),d.getSeconds()); };
       if(reduceMotion){ setHands(nowAngles()); finish(); return; }
       const opts={fast:1.0,slow:2.6};
-      const TRAVEL=600*(opts.fast+opts.slow/2); // yelkovanın her yöndeki yolu
+      const TRAVEL=600*(opts.fast+opts.slow/2);
       const legMs=(opts.fast+opts.slow)*1000, pause=600;
       const start=nowAngles(lidEnd);
       const back={h:start.h-TRAVEL/12,m:start.m-TRAVEL};
@@ -348,9 +317,6 @@ function startFinale(){
   setTimeout(show,900);
 }
 
-/* ---------- Zaman kapsülü (yalnızca .capsule olan sayfada) ----------
-   data-open="YYYY-MM-DD" tarihine kadar mühürlü kalır; telefonun
-   tarihine göre açılır. */
 const capsule=document.querySelector('.capsule');
 if(capsule){
   const [y,mo,d]=capsule.dataset.open.split('-').map(Number);

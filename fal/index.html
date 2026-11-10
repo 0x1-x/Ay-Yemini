@@ -24,7 +24,6 @@
     <button type="button" role="tab" id="tabEl" aria-controls="panelEl" aria-selected="false" tabindex="-1">El falı</button>
   </div>
 
-  <!-- Tarot: Geçmiş · Şimdi · Gelecek -->
   <div class="fal-panel" role="tabpanel" id="panelTarot" aria-labelledby="tabTarot">
     <p class="fal-lead" id="tarotLead">Aklından bir soru geçir ve desteyi karıştır.</p>
     <div class="spread" id="spread" aria-live="polite"></div>
@@ -32,13 +31,11 @@
     <button type="button" class="btn" id="shuffleBtn">Desteyi karıştır</button>
   </div>
 
-  <!-- Kahve falı: önceden bakılmış iki fincan, farklı gözlerden yorumlar -->
   <div class="fal-panel" role="tabpanel" id="panelKahve" aria-labelledby="tabKahve" hidden>
     <p class="fal-lead">İki fincan, birçok göz. Okumak istediğin fincana dokun.</p>
     <div class="cups" id="cups"></div>
   </div>
 
-  <!-- El falı: avucun fotoğrafı Gemini'ye gönderilir, çizgiler yorumlanır -->
   <div class="fal-panel" role="tabpanel" id="panelEl" aria-labelledby="tabEl" hidden>
     <p class="fal-lead" id="palmLead">Sol avucunu kameraya aç; çizgilerin bir hikâye anlatsın.</p>
     <div class="palm-stage" id="palmStage">
@@ -60,7 +57,6 @@
       <label class="palm-file" id="palmFileLabel">ya da fotoğraf seç<input type="file" id="palmFile" accept="image/*" capture="environment"></label>
     </div>
     <div class="palm-reading" id="palmReading" aria-live="polite"></div>
-    <p class="palm-note">Fotoğraf yorum için Google Gemini'ye gönderilir; site onu saklamaz.</p>
   </div>
 </section>
 </main>

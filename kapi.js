@@ -1,7 +1,3 @@
-/* =========================================================
-   Zamandan bir iz — şifre ekranı (giriş sayfası)
-   Doğru tarih girilince giriş sahnesi ve müzik açılır. Tarih kodda açık
-   yazılmaz; yalnızca kısa bir özeti (FNV-1a) karşılaştırılır. */
 const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const gate=document.getElementById('gate');
 if(gate){
@@ -10,7 +6,6 @@ if(gate){
   const slots=[...gate.querySelectorAll('.slot')];
   const msg=document.getElementById('gateMsg');
   const clue=document.getElementById('gateClue');
-  // İpuçları: 2. denemeden itibaren, yanlış sayısı arttıkça biraz daha belirginleşir
   const clues=[
     'İpucu: Gün, ay ve yıl olarak yaz.',
     'İpucu: 2026 yılının ekim ayı.'
@@ -39,7 +34,7 @@ if(gate){
     setTimeout(()=>{
       gate.hidden=true;
       entry.hidden=false;
-      if(window.ZBIMuzik) window.ZBIMuzik.show(); // müzik kendiliğinden başlamaz
+      if(window.ZBIMuzik) window.ZBIMuzik.show();
       entry.classList.add('from-gate');
       window.scrollTo({top:0,behavior:'auto'});
       entry.focus({preventScroll:true});

@@ -1,25 +1,13 @@
-/* =========================================================
-   Zamandan bir iz — "Benimle bu müziğe eşlik eder misin?" sayfası
-   - Şarkı yalnızca bu sayfada çalar (mektuplardaki listede yoktur).
-   - Sözler LRCLIB'den yüklenir ve şarkıyla birlikte akar.
-   - Bir satıra dokununca şarkı o satıra atlar.
-   ========================================================= */
 (function(){
   const sing=document.getElementById('sing');
   const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  // Sayfaya yalnızca üçüncü mektup açıldıktan sonra gelinir
   {
     let progress=null;
     try{ progress=Number(localStorage.getItem(window.ZBI.KEY_PROGRESS)||0); }catch(e){}
     if(progress!==null && progress<3){ location.replace('/'); return; }
   }
 
-  /* ---------- Sözleri yükleme ----------
-     Sözler sayfa açılınca LRCLIB'den (açık, ücretsiz senkron söz veritabanı)
-     çekilir; siteye kopyalanmaz. data-lrclib: LRCLIB kayıt numarası.
-     data-kaydir: bütün satırları birlikte kaydırır (saniye; eksi = daha erken). */
-  // Kiril alfabesinden gelen benzer harfleri Türkçe harflere çevir
   const LOOK={'а':'a','е':'e','о':'o','р':'p','с':'c','у':'y','х':'x','і':'i','ј':'j','ѕ':'s','ԁ':'d','ɡ':'g',
               'А':'A','В':'B','Е':'E','К':'K','М':'M','Н':'H','О':'O','Р':'P','С':'C','Т':'T','Х':'X','І':'I','Ј':'J','Ѕ':'S'};
   const normalize=(t)=>t.replace(/[аеорсухіјѕԁɡАВЕКМНОРСТХІЈЅ]/g,ch=>LOOK[ch]||ch).replace(/[\u200B-\u200D\uFEFF]/g,'');
@@ -31,7 +19,6 @@
   }
   const OFFSET=Number(sing.dataset.kaydir||0);
 
-  /* ---------- Ses: iPhone'da ses düzeyi için Web Audio kazancı ---------- */
   const audio=new Audio(sing.dataset.src);
   audio.preload='auto';
   let ctx=null, gain=null, vol=0.85;
@@ -51,11 +38,10 @@
   function play(){ ensureGraph(); if(ctx&&ctx.state==='suspended') ctx.resume(); applyVol(); return audio.play().catch(()=>{}); }
   function pause(){ audio.pause(); }
 
-  /* ---------- Sözler ---------- */
   document.getElementById('singTitle').textContent=sing.dataset.title||'';
   document.getElementById('singArtist').textContent=sing.dataset.artist||'';
   const list=document.getElementById('lyrics');
-  let lines=[]; // {t, text, el}
+  let lines=[];
 
   function parseLRC(txt){
     const out=[];
@@ -95,7 +81,6 @@
       l.el.classList.toggle('is-active',k===i);
       l.el.classList.toggle('is-past',k<i);
     });
-    // Çalan satırı ortaya kaydır
     const target=lines[Math.max(i,0)].el;
     const top=target.offsetTop-list.clientHeight/2+target.offsetHeight/2;
     list.scrollTo({top,behavior:reduceMotion||force?'auto':'smooth'});
@@ -106,13 +91,11 @@
   audio.addEventListener('pause',render);
   audio.addEventListener('seeked',()=>sync(true));
   audio.addEventListener('ended',()=>{ render(); sing.classList.add('ended'); });
-  // Şarkı bittiğinde ya da durdurulduğunda fal sayfasına giden bağlantı belirir
   const showNext=()=>sing.classList.add('show-next');
   audio.addEventListener('ended',showNext);
   audio.addEventListener('pause',()=>{ if(audio.currentTime>5) showNext(); });
   audio.addEventListener('loadedmetadata',renderTime);
 
-  /* ---------- Çalar ---------- */
   const startB=document.getElementById('singStart');
   const playB=document.getElementById('singPlay');
   const bar=document.getElementById('singBar');
@@ -149,7 +132,6 @@
   }
   render();
 
-  // Kilit ekranı kontrolleri
   if('mediaSession' in navigator){
     try{
       navigator.mediaSession.metadata=new MediaMetadata({title:sing.dataset.title||'',artist:sing.dataset.artist||'',album:'Zamandan bir iz',artwork:[{src:'/muzik/kapak.jpg'}]});

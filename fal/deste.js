@@ -1,9 +1,3 @@
-/* =========================================================
-   Tarot destesi — 22 Büyük Arkana
-   Her kartın düz ve ters anahtar sözcükleri, Geçmiş / Şimdi / Gelecek
-   konumlarındaki düz ve ters (t-) anlamı ve birleşik yorum için kısa özeti
-   (ozet / tozet). Semboller fal.js içinde çizilir (s: sembol adı).
-   ========================================================= */
 window.ZBI_DESTE=[
   { no:'0', ad:'Deli', s:'deli', anahtar:'Başlangıç · cesaret · masumiyet',
     gecmis:'Bir zamanlar düşünmeden attığın bir adım, bugün iyi ki dediğin bir yolun başlangıcı oldu.',

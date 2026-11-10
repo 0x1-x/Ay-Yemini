@@ -1,34 +1,20 @@
-/* =========================================================
-   El falı — avuç fotoğrafını Gemini'ye gönderir, Türkçe yorum döndürür.
-   - API anahtarı Netlify ortam değişkeninden okunur: GEMINI_API_KEY
-   - Model isteğe bağlı olarak GEMINI_MODEL ile değiştirilebilir.
-   - Yalnızca bu sitenin sayfalarından gelen istekler kabul edilir.
-   - Yanıt sabit bir JSON şemasıyla gelir (el_mi, mesaj, hayat, kalp, akil, kader, genel).
-   ========================================================= */
 import { GoogleGenAI, ApiError, ThinkingLevel } from "@google/genai";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-// Ana model yoğunsa sırayla yedeklere geçilir (Netlify'da GEMINI_MODEL / GEMINI_FALLBACK_MODELS ile değiştirilebilir)
-// Hafif "flash-lite" modelleri hızlı ve yoğunluktan daha az etkileniyor; ana flash modelleri yedekte
 const MODELS = [
   process.env.GEMINI_MODEL || "gemini-3.5-flash-lite",
   ...(process.env.GEMINI_FALLBACK_MODELS || "gemini-3.1-flash-lite,gemini-3.8-flash,gemini-3.5-flash").split(",")
 ].map((m) => m.trim()).filter((m, i, a) => m && a.indexOf(m) === i);
 
-const MAX_IMAGE_CHARS = 2_500_000; // ~1.8 MB'lık JPEG (base64)
-// Netlify fonksiyonu ~30 sn'de kesilir; bütün denemeler bu ortak süre içinde biter
+const MAX_IMAGE_CHARS = 2_500_000;
 const TOTAL_BUDGET_MS = 25_000;
-// Tek bir model bütün süreyi tüketmesin: her deneme en fazla bu kadar sürer
 const PER_MODEL_MS = 12_000;
 
-// Düşünme ayarı model ailesine göre: lite modellerde gönderilmez (zaten az düşünürler),
-// 2.x'te kapalı, diğer 3.x modellerinde düşük seviye (MINIMAL desteklenmiyor)
 const thinkingFor = (model) =>
   /lite/.test(model) ? undefined
   : /gemini-2\./.test(model) ? { thinkingBudget: 0 }
   : { thinkingLevel: ThinkingLevel.LOW };
 
-// Yoğunluk, kota, zaman aşımı ya da modelin bulunamaması: bir sonraki modele geç
 const isRetryable = (error) =>
   (error instanceof ApiError && [404, 429, 500, 503, 504].includes(error.status)) ||
   error?.name === "AbortError" || error?.name === "TimeoutError" ||
@@ -63,7 +49,6 @@ const json = (status, body) =>
     headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" }
   });
 
-// Yalnızca bu sitenin kendi adreslerinden gelen istekleri kabul et
 function allowedOrigin(req) {
   const origin = req.headers.get("origin") || "";
   if (!origin) return false;
@@ -110,7 +95,6 @@ export default async (req) => {
         responseJsonSchema: SCHEMA,
         maxOutputTokens: 1500,
         thinkingConfig: thinkingFor(model),
-        // Kalan süreyi kullan; yeniden denemeyi SDK yerine model değiştirerek yap
         httpOptions: { timeout: Math.min(left - 500, PER_MODEL_MS), retryOptions: { attempts: 1 } }
       }
     });
@@ -131,7 +115,6 @@ export default async (req) => {
     }
     if (!response) throw lastError;
 
-    // Güvenlik filtresi istemi ya da yanıtı durdurduysa metin boş gelir
     const text = response.text;
     if (response.promptFeedback?.blockReason || !text) {
       return json(422, { hata: "Bu fotoğrafla fal bakılamadı. Başka bir fotoğraf dener misin?" });
@@ -150,7 +133,6 @@ export default async (req) => {
       if (error.status === 504) return json(504, { hata: "Yorum beklenenden uzun sürdü. Birkaç dakika sonra tekrar dene." });
       return json(502, { hata: "Fal servisine ulaşılamadı. Biraz sonra tekrar dene." });
     }
-    // Gemini süre sınırı içinde yanıt vermedi
     if (error?.name === "AbortError" || error?.name === "TimeoutError" || /timed? ?out|aborted/i.test(String(error?.message))) {
       console.error("Gemini zaman aşımı");
       return json(504, { hata: "Yorum beklenenden uzun sürdü. Birkaç dakika sonra tekrar dene." });

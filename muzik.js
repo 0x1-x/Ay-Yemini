@@ -1,27 +1,12 @@
-/* =========================================================
-   Zamandan bir iz — müzik çalar widget'ı
-   - Çalma listeleri (temaya göre) ve kapak fotoğrafı muzik/liste.js'ten gelir.
-     Her sayfa <html data-era> temasının listesini çalar; giriş sayfası Geçmiş'i.
-   - Her sayfada aynı widget: açık hâl (kart) ve yuvarlak hâl (kapak
-     fotoğraflı, sürüklenebilir). Birine dokununca diğerine geçer.
-   - Müzik kendiliğinden başlamaz. Giriş sayfası her açıldığında çalar
-     ilk şarkıda bekler; oynat'a basılınca sırayla çalar.
-   - Mektup sayfalarında, önceki sayfada çalıyorduysa ilk dokunuşta
-     kaldığı yerden devam eder.
-   - iPhone'da ses düzeyi kodla değiştirilemediği için ses Web Audio
-     üzerinden bir kazanç düğümüyle ayarlanır.
-   ========================================================= */
 (function(){
   const KEY=window.ZBI.KEY_MUSIC;
   const isEntry=document.documentElement.dataset.page==='giris';
-  // Sayfanın teması: giriş sayfası Geçmiş'i çalar (ilk mektuba geçince müzik sürsün diye)
   const ERA=isEntry?'past':(document.documentElement.dataset.era||'past');
   const LISTS=window.ZBI_LISTE||{};
   const LIST=Array.isArray(LISTS)?LISTS:(LISTS[ERA]||[]);
   if(!LIST.length) return;
   const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  /* ---------- Durum ---------- */
   const load=()=>{ try{ return JSON.parse(localStorage.getItem(KEY))||{}; }catch(e){ return {}; } };
   const saved=load();
   const st={
@@ -30,22 +15,17 @@
     playing: !!saved.playing,
     vol: typeof saved.vol==='number' ? saved.vol : 0.8,
     open: typeof saved.open==='boolean' ? saved.open : isEntry,
-    pos: saved.pos && typeof saved.pos.x==='number' ? saved.pos : null // yuvarlağın yeri (ekranın oranı olarak)
+    pos: saved.pos && typeof saved.pos.x==='number' ? saved.pos : null
   };
-  // Başka bir temadan gelindiyse bu sayfanın listesine baştan başla
-  // (çalıyorduysa ilk dokunuşta bu temanın ilk şarkısı çalar)
   if(saved.era!==ERA){ st.i=0; st.t=0; }
-  // Giriş sayfası her açıldığında baştan: ilk şarkı, durmuş, çalar açık
   if(isEntry){ st.i=0; st.t=0; st.playing=false; st.open=true; }
 
   const save=()=>{ try{ localStorage.setItem(KEY,JSON.stringify({era:ERA,i:st.i,t:audio.currentTime||0,playing:st.playing,vol:st.vol,open:st.open,pos:st.pos})); }catch(e){} };
 
-  /* ---------- Ses motoru ---------- */
   const audio=new Audio();
   audio.preload='metadata';
   audio.src=LIST[st.i].dosya;
   let ctx=null, gain=null;
-  // Sessiz düğmesi açıkken de çalsın (Safari 16.4+)
   try{ if(navigator.audioSession) navigator.audioSession.type='playback'; }catch(e){}
 
   function ensureGraph(){
@@ -92,12 +72,9 @@
   const prev=()=>{ if(audio.currentTime>3) audio.currentTime=0; else go(st.i-1); };
   function setVol(v){ st.vol=Math.max(0,Math.min(1,Math.round(v*10)/10)); applyVolume(); render(); save(); }
 
-  // Tek şarkılık listede şarkı bitince başa dönüp yeniden çalar
   audio.loop=LIST.length===1;
   audio.addEventListener('ended',next);
   audio.addEventListener('play',render);
-  // Giriş sayfası: müzik ilk kez başladığında, kartlar arasında müziğin
-  // duracağını anlatan satır yavaşça belirir
   const musicNote=document.getElementById('musicNote');
   if(musicNote) audio.addEventListener('play',()=>musicNote.classList.add('shown'),{once:true});
   audio.addEventListener('pause',render);
@@ -109,7 +86,6 @@
   window.addEventListener('pagehide',save);
   document.addEventListener('visibilitychange',()=>{ if(document.hidden) save(); });
 
-  /* ---------- Kilit ekranı kontrolleri ---------- */
   function setMeta(){
     if(!('mediaSession' in navigator)) return;
     const s=LIST[st.i];
@@ -126,12 +102,10 @@
   }
   setMeta();
 
-  /* ---------- Mektuplarda: önceki sayfada çalıyorduysa ilk dokunuşta devam ---------- */
   function armResume(){
     const evs=['pointerup','touchend','keydown','click'];
     const onFirst=(e)=>{
       evs.forEach(ev=>document.removeEventListener(ev,onFirst,true));
-      // Çaların kendi düğmelerine dokunulduysa işi düğmeye bırak
       if(e && e.target && e.target.closest && e.target.closest('.mw')) return;
       if(audio.paused) play();
     };
@@ -139,7 +113,6 @@
   }
   if(!isEntry && st.playing) armResume();
 
-  /* ---------- Arayüz ---------- */
   const I={
     prev:'<svg viewBox="0 0 24 24"><path d="M6 5v14M18 6l-9 6 9 6z"/></svg>',
     next:'<svg viewBox="0 0 24 24"><path d="M18 5v14M6 6l9 6-9 6z"/></svg>',
@@ -186,9 +159,7 @@
       </svg>
     </button>`;
   document.body.appendChild(el);
-  // Tek şarkı varsa önceki/sonraki düğmeleri gizlenir
   if(LIST.length===1) el.classList.add('single');
-  // Kapak fotoğrafı yüklenemezse hilal görünsün
   el.querySelectorAll('.mw-cover img').forEach(img=>img.addEventListener('error',()=>img.remove()));
 
   const $=(s)=>el.querySelector(s);
@@ -206,7 +177,6 @@
   bar.addEventListener('click',e=>seek(e.clientX));
   bar.addEventListener('keydown',e=>{ if(e.key==='ArrowRight') audio.currentTime+=5; if(e.key==='ArrowLeft') audio.currentTime-=5; });
 
-  /* ---------- Açık / yuvarlak geçişi ---------- */
   const panel=$('.mw-panel');
   const SIZE=64, MARGIN=10, GAP=12;
   const bounds=()=>{
@@ -214,15 +184,11 @@
     return {w:vv?vv.width:innerWidth, h:vv?vv.height:innerHeight};
   };
   const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-  let bx=0, by=0; // yuvarlağın şu anki yeri (piksel)
-  // iPhone'un alt çubuğu için bırakılan boşluğu ölçmek üzere görünmez öğe
+  let bx=0, by=0;
   const safeProbe=document.createElement('div');
   safeProbe.style.cssText='position:fixed;left:0;bottom:0;width:0;height:0;padding-bottom:env(safe-area-inset-bottom);visibility:hidden;pointer-events:none';
   el.appendChild(safeProbe);
 
-  /* ---------- Açık kartı yuvarlağın olduğu yerde aç ----------
-     Yuvarlak alt yarıdaysa kart yukarı, üst yarıdaysa aşağı doğru açılır;
-     kenarlardan taşmaz. Yuvarlak hiç taşınmadıysa kart altta ortalanır. */
   function placePanel(){
     const {w,h}=bounds();
     const pw=panel.offsetWidth, ph=panel.offsetHeight;
@@ -238,7 +204,6 @@
     }
     panel.style.left=left+'px';
     panel.style.top=top+'px';
-    // Kart, yuvarlağın içinden büyüyormuş gibi açılsın
     panel.style.transformOrigin=`${bx+SIZE/2-left}px ${by+SIZE/2-top}px`;
   }
 
@@ -252,15 +217,12 @@
     if(focus){ (open?$('.pl-play'):bubble).focus({preventScroll:true}); }
   }
 
-  /* ---------- Yuvarlağı sürükleme ----------
-     Konum transform ile verilir ve ekran yenilemesine bağlı güncellenir;
-     böylece iPhone'da sayfa düzeni her harekette yeniden hesaplanmaz. */
   const setBubble=(x,y)=>{ bx=x; by=y; bubble.style.transform=`translate3d(${x}px,${y}px,0)`; };
   function placeBubble(){
     const {w,h}=bounds();
     let x,y;
     if(st.pos){ x=st.pos.x*w; y=st.pos.y*h; }
-    else{ x=w-SIZE-16; y=h-SIZE-28; } // varsayılan: sağ alt köşe
+    else{ x=w-SIZE-16; y=h-SIZE-28; }
     setBubble(clamp(x,MARGIN,w-SIZE-MARGIN),clamp(y,MARGIN,h-SIZE-MARGIN));
     if(st.open) placePanel();
   }
@@ -281,7 +243,7 @@
     const {w,h}=bounds();
     drag.x=clamp(drag.ox+dx,MARGIN,w-SIZE-MARGIN);
     drag.y=clamp(drag.oy+dy,MARGIN,h-SIZE-MARGIN);
-    setBubble(drag.x,drag.y); // doğrudan: parmağın bir kare gerisinde kalmasın
+    setBubble(drag.x,drag.y);
   });
   const endDrag=(e)=>{
     if(!drag||e.pointerId!==drag.id) return;
@@ -296,15 +258,12 @@
   };
   bubble.addEventListener('pointerup',endDrag);
   bubble.addEventListener('pointercancel',endDrag);
-  // Sürükleme bittiği an gelen tıklama yuvarlağı açmasın
   bubble.addEventListener('click',()=>{ if(Date.now()-lastDragEnd<400) return; setOpen(true); });
   bubble.addEventListener('contextmenu',e=>e.preventDefault());
-  // iPhone'da sürüklerken sayfanın kaymasını engelle
   bubble.addEventListener('touchmove',e=>{ if(e.cancelable) e.preventDefault(); },{passive:false});
   window.addEventListener('resize',placeBubble);
   if(window.visualViewport) visualViewport.addEventListener('resize',placeBubble);
 
-  /* ---------- Çizim ---------- */
   function renderTime(){
     const d=audio.duration||0, c=audio.currentTime||0, p=d?c/d:0;
     el.querySelector('.pl-fill').style.width=(p*100)+'%';
@@ -332,7 +291,6 @@
   placeBubble();
   setOpen(st.open,false);
   render();
-  // Giriş sayfasında şifre ekranı açıkken widget gizli kalır
   const gate=document.getElementById('gate');
   if(gate && !gate.hidden) el.hidden=true;
   if(!reduceMotion) requestAnimationFrame(()=>el.classList.add('ready'));
