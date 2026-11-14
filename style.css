@@ -709,3 +709,32 @@ html[data-page="son"] main{padding-top:max(20px,env(safe-area-inset-top));paddin
 @media (prefers-reduced-motion:reduce){
   *,*:before,*:after{animation:none!important;transition:none!important}
 }
+
+/* ---------- Parlayan yıldız: daha eski izler ---------- */
+.iz-star{position:fixed;z-index:25;top:calc(env(safe-area-inset-top,0px) + 13vh);right:15vw;width:44px;height:44px;margin:-22px -22px 0 0;padding:0;border:0;background:none;cursor:pointer;-webkit-tap-highlight-color:transparent;display:grid;place-items:center}
+.iz-star span{position:relative;width:3px;height:3px;border-radius:50%;background:#f6e3b4;box-shadow:0 0 4px #f6e3b4,0 0 10px #c5a36a99;animation:izGlow 7s ease-in-out infinite}
+.iz-star span:before,.iz-star span:after{content:"";position:absolute;left:50%;top:50%;background:linear-gradient(90deg,transparent,#f6e3b4cc,transparent);transform:translate(-50%,-50%);opacity:0;animation:izRay 7s ease-in-out infinite}
+.iz-star span:before{width:16px;height:1px}
+.iz-star span:after{width:1px;height:16px;background:linear-gradient(transparent,#f6e3b4cc,transparent)}
+.iz-star:focus-visible{outline:1px solid var(--gold-soft);outline-offset:-8px;border-radius:50%}
+.iz-star.found span{background:#fff1cc}
+body:has(#gate:not([hidden])) .iz-star{display:none}
+@keyframes izGlow{0%,70%,100%{transform:scale(1);opacity:.75}82%{transform:scale(1.5);opacity:1}}
+@keyframes izRay{0%,72%,94%,100%{opacity:0}82%{opacity:1}}
+@media (prefers-reduced-motion:reduce){.iz-star span,.iz-star span:before,.iz-star span:after{animation:none}.iz-star span:before,.iz-star span:after{opacity:.6}}
+
+.iz-dialog{width:min(calc(100% - 32px),400px);max-height:calc(100% - 48px);padding:0;border:1px solid #c5a36a40;border-radius:4px;background:linear-gradient(180deg,#17120d,#0f0c09);color:var(--text);box-shadow:0 24px 60px #000c}
+.iz-dialog[open]{animation:fadeIn .6s var(--ease) both}
+.iz-dialog::backdrop{background:#050403cc;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+.iz-inner{position:relative;padding:30px 22px 24px;text-align:center}
+.iz-close{position:absolute;top:6px;right:6px;width:44px;height:44px;border:0;background:none;color:var(--muted);font:300 26px/1 var(--sans);cursor:pointer}
+.iz-dialog h2{margin:10px 0 6px;font:400 26px/1.25 var(--serif);color:var(--text)}
+.iz-lead{margin:0 0 20px;font-style:italic;color:var(--muted)}
+.iz-list{list-style:none;margin:0;padding:0;text-align:left}
+.iz-list li+li{border-top:1px solid #c5a36a22}
+.iz-list a{display:flex;align-items:center;gap:14px;min-height:56px;padding:12px 4px;color:var(--text);text-decoration:none;-webkit-tap-highlight-color:transparent}
+.iz-list a:active{background:var(--gold-faint)}
+.iz-no{flex:0 0 28px;font:500 11px var(--sans);letter-spacing:.14em;color:var(--gold);text-align:center}
+.iz-ad{flex:1;font-size:17px;line-height:1.3}
+.iz-ad small{display:block;margin-top:3px;font:400 11px var(--sans);letter-spacing:.06em;color:var(--muted)}
+.iz-go{color:var(--gold-soft);font:400 15px var(--sans)}

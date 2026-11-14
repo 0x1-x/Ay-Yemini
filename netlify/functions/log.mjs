@@ -29,11 +29,14 @@ const OLAYLAR = {
   el_gecersiz:      () => "✋ El falı: fotoğrafta avuç seçilemedi, yeniden istendi",
   el_hata:          () => "✋ El falı: servis yanıt vermedi",
   el_yeniden:       () => "✋ El falına yeniden bakılmak istendi",
-  el_tekrar:        () => "✋ Günün el falı okumasına yeniden bakıldı"
+  el_tekrar:        () => "✋ Günün el falı okumasına yeniden bakıldı",
+  iz_yildiz:        () => "⭐ Parlayan yıldız bulundu, eski izler açıldı",
+  iz_site:          (e) => `⭐ Eski iz açıldı: ${SITE[e.site]}`
 };
 
 const TAROT = /^[A-Za-zÇĞİÖŞÜçğıöşüÂâ ·:()]{1,160}$/;
 const AI = ["Claude", "Gemini", "ChatGPT"];
+const SITE = { 1: "merakinotesi", 2: "birtesaduf", 3: "bir-cocukluk", 4: "firtinadan-sonra" };
 
 const json = (status, body) =>
   new Response(body ? JSON.stringify(body) : null, { status, headers: { "content-type": "application/json; charset=utf-8" } });
@@ -53,6 +56,7 @@ function clean(body) {
   if ([1, 2].includes(Number(body.fincan))) e.fincan = Number(body.fincan);
   if (AI.includes(body.ai)) e.ai = body.ai;
   if (["kamera", "dosya"].includes(body.kaynak)) e.kaynak = body.kaynak;
+  if ([1, 2, 3, 4].includes(Number(body.site))) e.site = Number(body.site);
   if (typeof body.kartlar === "string" && TAROT.test(body.kartlar)) e.kartlar = body.kartlar;
   return e;
 }
@@ -62,6 +66,7 @@ function needs(olay, e) {
   if (olay === "kahve_fincan") return !!e.fincan;
   if (olay === "kahve_okundu") return !!(e.fincan && e.ai);
   if (olay === "tarot_acildi") return !!e.kartlar;
+  if (olay === "iz_site") return !!e.site;
   return true;
 }
 

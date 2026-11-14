@@ -39,3 +39,46 @@ window.ZBILog=function(olay,detay){
     fetch('/api/log',{method:'POST',headers:{'content-type':'application/json'},body,keepalive:true}).catch(()=>{});
   }catch(e){}
 };
+
+(function(){
+  const IZLER=[
+    {url:'https://merakinotesi.vercel.app',ad:'Sana bir şey daha hazırladım'},
+    {url:'https://birtesaduf.vercel.app',ad:'Sana bir şey hazırladım'},
+    {url:'https://bir-cocukluk.vercel.app',ad:'Bu gece lunapark senin'},
+    {url:'https://firtinadan-sonra.vercel.app',ad:'Fırtınadan Sonra'}
+  ];
+  if(document.documentElement.classList.contains('not-phone')) return;
+  const log=(olay,d)=>window.ZBILog&&window.ZBILog(olay,d);
+
+  const star=document.createElement('button');
+  star.type='button';
+  star.className='iz-star';
+  star.setAttribute('aria-label','Parlayan yıldız');
+  star.innerHTML='<span aria-hidden="true"></span>';
+
+  const dlg=document.createElement('dialog');
+  dlg.className='iz-dialog';
+  dlg.setAttribute('aria-labelledby','izTitle');
+  dlg.innerHTML=`
+    <div class="iz-inner">
+      <button type="button" class="iz-close" aria-label="Kapat">×</button>
+      <div class="eyebrow">Zamandan bir iz</div>
+      <h2 id="izTitle">Daha eski izler</h2>
+      <p class="iz-lead">Bu izden önce de izler vardı.</p>
+      <ol class="iz-list">
+        ${IZLER.map((z,i)=>`<li><a href="${z.url}" target="_blank" rel="noopener" data-i="${i+1}"><span class="iz-no">${['I','II','III','IV'][i]}</span><span class="iz-ad">${z.ad}<small>${new URL(z.url).hostname.split('.')[0]}</small></span><span class="iz-go" aria-hidden="true">↗</span></a></li>`).join('')}
+      </ol>
+    </div>`;
+
+  document.body.append(star,dlg);
+  const open=()=>{
+    if(typeof dlg.showModal==='function') dlg.showModal(); else dlg.setAttribute('open','');
+    star.classList.add('found');
+    log('iz_yildiz');
+  };
+  const close=()=>{ if(dlg.open) dlg.close(); else dlg.removeAttribute('open'); };
+  star.addEventListener('click',open);
+  dlg.querySelector('.iz-close').addEventListener('click',close);
+  dlg.addEventListener('click',e=>{ if(e.target===dlg) close(); });
+  dlg.querySelectorAll('.iz-list a').forEach(a=>a.addEventListener('click',()=>log('iz_site',{site:Number(a.dataset.i)})));
+})();
