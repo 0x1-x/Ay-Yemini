@@ -726,7 +726,7 @@ body:has(#gate:not([hidden])) .iz-star{display:none}
 .iz-dialog{width:min(calc(100% - 32px),400px);max-height:calc(100% - 48px);padding:0;border:1px solid #c5a36a40;border-radius:4px;background:linear-gradient(180deg,#17120d,#0f0c09);color:var(--text);box-shadow:0 24px 60px #000c}
 .iz-dialog[open]{animation:fadeIn .6s var(--ease) both}
 .iz-dialog::backdrop{background:#050403cc;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
-.iz-inner{position:relative;padding:30px 22px 24px;text-align:center}
+.iz-inner{outline:none;position:relative;padding:30px 22px 24px;text-align:center}
 .iz-close{position:absolute;top:6px;right:6px;width:44px;height:44px;border:0;background:none;color:var(--muted);font:300 26px/1 var(--sans);cursor:pointer}
 .iz-dialog h2{margin:10px 0 6px;font:400 26px/1.25 var(--serif);color:var(--text)}
 .iz-lead{margin:0 0 20px;font-style:italic;color:var(--muted)}
@@ -738,3 +738,20 @@ body:has(#gate:not([hidden])) .iz-star{display:none}
 .iz-ad{flex:1;font-size:17px;line-height:1.3}
 .iz-ad small{display:block;margin-top:3px;font:400 11px var(--sans);letter-spacing:.06em;color:var(--muted)}
 .iz-go{color:var(--gold-soft);font:400 15px var(--sans)}
+
+/* ---------- Ay yemini: aya basılı tutunca açılır, her ayın 17'sinde dolunay olur ---------- */
+.yemin-ay{cursor:pointer;touch-action:none;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;outline:none;--p:0}
+.yemin-ay:focus-visible{outline:1px solid var(--gold-soft);outline-offset:10px;border-radius:50%}
+.yemin-ay .moon-fill{position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle at 34% 44%,#f8efd6 0,#e3d2a8 38%,#bfa776 68%,#8a7552 100%);opacity:calc(var(--p) * .9);pointer-events:none}
+.yemin-ay.full .moon-fill{opacity:1;transition:opacity .3s}
+.moon-ring{position:absolute;inset:-14px;pointer-events:none;opacity:0;transition:opacity .3s}
+.moon-ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.moon-ring circle{fill:none;stroke:#e3d2a8;stroke-width:1.2;stroke-linecap:round;opacity:.8}
+.yemin-ay.holding .moon-ring,.yemin-ay.full .moon-ring{opacity:1}
+html.yemin-gunu .yemin-ay .moon-fill{opacity:1}
+html.yemin-gunu .yemin-ay{animation:yeminGlow 5s ease-in-out infinite}
+@keyframes yeminGlow{0%,100%{filter:drop-shadow(0 0 16px #c5a36a55) drop-shadow(0 0 40px #c5a36a2a)}50%{filter:drop-shadow(0 0 22px #e3d2a888) drop-shadow(0 0 56px #c5a36a44)}}
+@media (prefers-reduced-motion:reduce){html.yemin-gunu .yemin-ay{animation:none;filter:drop-shadow(0 0 20px #c5a36a66) drop-shadow(0 0 48px #c5a36a33)}}
+.yemin-moon{width:64px;height:64px;margin:16px auto 4px;border-radius:50%;background:radial-gradient(circle at 34% 44%,#f8efd6 0,#e3d2a8 38%,#bfa776 68%,#8a7552 100%);filter:drop-shadow(0 0 14px #c5a36a55) drop-shadow(0 0 34px #c5a36a2a)}
+.yemin-sure{margin:0;font-style:italic;color:var(--muted)}
+.yemin-not{margin:18px 0 0;padding-top:16px;border-top:1px solid #c5a36a22;line-height:1.75;color:#e6dcc8}

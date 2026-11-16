@@ -31,7 +31,8 @@ const OLAYLAR = {
   el_yeniden:       () => "✋ El falına yeniden bakılmak istendi",
   el_tekrar:        () => "✋ Günün el falı okumasına yeniden bakıldı",
   iz_yildiz:        () => "⭐ Parlayan yıldız bulundu, eski izler açıldı",
-  iz_site:          (e) => `⭐ Eski iz açıldı: ${SITE[e.site]}`
+  iz_site:          (e) => `⭐ Eski iz açıldı: ${SITE[e.site]}`,
+  yemin_acildi:     (e) => `🌕 Ay yemini notu açıldı${e.bugun ? " · bugün yeminin " + e.ay + ". ayı" : ""}`
 };
 
 const TAROT = /^[A-Za-zÇĞİÖŞÜçğıöşüÂâ ·:()]{1,160}$/;
@@ -57,6 +58,8 @@ function clean(body) {
   if (AI.includes(body.ai)) e.ai = body.ai;
   if (["kamera", "dosya"].includes(body.kaynak)) e.kaynak = body.kaynak;
   if ([1, 2, 3, 4].includes(Number(body.site))) e.site = Number(body.site);
+  if (Number.isInteger(body.ay) && body.ay >= 0 && body.ay <= 1200) e.ay = body.ay;
+  if (body.bugun === true) e.bugun = true;
   if (typeof body.kartlar === "string" && TAROT.test(body.kartlar)) e.kartlar = body.kartlar;
   return e;
 }
