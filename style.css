@@ -754,4 +754,8 @@ html.yemin-gunu .yemin-ay{animation:yeminGlow 5s ease-in-out infinite}
 @media (prefers-reduced-motion:reduce){html.yemin-gunu .yemin-ay{animation:none;filter:drop-shadow(0 0 20px #c5a36a66) drop-shadow(0 0 48px #c5a36a33)}}
 .yemin-moon{width:64px;height:64px;margin:16px auto 4px;border-radius:50%;background:radial-gradient(circle at 34% 44%,#f8efd6 0,#e3d2a8 38%,#bfa776 68%,#8a7552 100%);filter:drop-shadow(0 0 14px #c5a36a55) drop-shadow(0 0 34px #c5a36a2a)}
 .yemin-sure{margin:0;font-style:italic;color:var(--muted)}
-.yemin-not{margin:18px 0 0;padding-top:16px;border-top:1px solid #c5a36a22;line-height:1.75;color:#e6dcc8}
+.yemin-dialog{overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.yemin-not{margin:20px 0 0;padding-top:18px;border-top:1px solid #c5a36a22;text-align:left;font-size:16px;line-height:1.8;color:#e6dcc8}
+.yemin-not p{margin:0 0 14px}
+.yemin-not p:first-child{font-style:italic;color:var(--gold)}
+.yemin-not p:last-child{margin-bottom:0}
