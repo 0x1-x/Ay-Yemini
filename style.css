@@ -759,3 +759,4 @@ html.yemin-gunu .yemin-ay{animation:yeminGlow 5s ease-in-out infinite}
 .yemin-not p{margin:0 0 14px}
 .yemin-not p:first-child{font-style:italic;color:var(--gold)}
 .yemin-not p:last-child{margin-bottom:0}
+.yemin-not .yemin-imza{margin:18px 0 0;text-align:right;font-style:italic;font-size:19px;color:var(--gold)}

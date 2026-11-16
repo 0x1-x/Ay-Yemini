@@ -85,11 +85,12 @@ window.ZBILog=function(olay,detay){
 
 (function(){
   const START={y:2026,m:9,d:17};
+  const IMZA='Alfa';
   const NOT=`Sevgili Yuvam Luna,
 
 Bugün seninle iyisiyle, kötüsüyle, acısıyla, tatlısıyla ettiğimiz yeminin birinci ayı. Öncelikle seni çok seviyorum ve sana çok âşığım. Ardından ise şunları demek istiyorum: Yeri geldi, ergence ve çocukça hareketlerim yüzünden böylesine özel bir yemini sakız ettim. “Bozuyorum” dedim, “bozucam” dedim; kısaca çoğu cümlem ile çöp ettim veya etmeye kalktım. Ama artık bundan sonra, bu notu sen okuduktan sonra, o yemin ile alakalı ne olursa olsun hiçbir kavgada da tartışmada da önüne çıkarmayacağım. Bu yemin bir bağlılığın, bir aşkın, bir sevginin ve en önemlisi geleceğimizin sembolü ve ben sırf aptal saptal şeyler için böylesine özel bir sembolü ayaklar altına alamam, bundan vazgeçmem ve bunu senin karşına getirmem. Bunun için ekstra olarak sevgimin ve aşkımın üzerine sana söz veriyor ve yemin ediyorum.
 
-İkinci olarak ise bu zamana kadar yaşadığımız her şeyin yanı sıra, ilk benim kanayan yarama diş geçirdiğin zaman öğrenmiştin birçok şeyin sebebini. Şimdi ise bir tane daha sebep öğreneceksin ama korkma, bu sefer iyi bir sebep var. O da şu ki senin bana karşı ilgin, alakan, davranışların sevgiliden ziyade bir anne sıcaklığında geliyorsun ve bu hissi yıllardır görmesem de bilmesem de bunu bana hissettiriyorsun. Asla o kadın gibi değilsin, olamazsın da ama bir anne sıcaklığı verdiğini bilmeni istiyorum. Lütfen bunu okuduktan sonra daha fazla vermeye çalışma, çünkü yapay olacak, bunu bildiğin için. Sen doğal hâlinle bunu yaptın, böyle kalsın.
+İkinci olarak ise bu zamana kadar yaşadığımız her şeyin yanı sıra, ilk benim kanayan yarama diş geçirdiğin zaman öğrenmiştin birçok şeyin sebebini. Şimdi ise bir tane daha sebep öğreneceksin ama korkma, bu sefer iyi bir sebep var. O da şu ki senin bana karşı ilgin, alakan, davranışların sevgiliden ziyade bir anne sıcaklığında geliyor ve bu hissi yıllardır görmesem de bilmesem de bana hissettiriyorsun. Asla o kadın gibi değilsin, olamazsın da ama bir anne sıcaklığı verdiğini bilmeni istiyorum. Lütfen bunu okuduktan sonra daha fazla vermeye çalışma, çünkü yapay olacak, bunu bildiğin için. Sen doğal hâlinle bunu yaptın, böyle kalsın.
 
 Üçüncü ve son olarak: İyi ki karşıma çıktın, iyi ki benimsin, iyi ki hayatımdasın. Geleceğimi seninle inşa etmek için, yuvamızı seninle beraber kurmak için her zorluğa, her engele ve her şeye rağmen çok istiyorum. Seni çok seviyorum Luna’m. Birinci ay yeminimiz kutlu, mutlu, sağlıklı ve huzurlu olsun.`;
   if(document.documentElement.classList.contains('not-phone')) return;
@@ -124,7 +125,7 @@ Bugün seninle iyisiyle, kötüsüyle, acısıyla, tatlısıyla ettiğimiz yemin
           <div class="yemin-moon" aria-hidden="true"></div>
           <h2 id="yeminTitle">${START.d} ${MONTHS[START.m]} ${START.y}</h2>
           <p class="yemin-sure">${sure}</p>
-          ${NOT?`<div class="yemin-not">${NOT.trim().split(/\n\s*\n/).map(x=>`<p>${esc(x).replace(/\n/g,'<br>')}</p>`).join('')}</div>`:''}
+          ${NOT?`<div class="yemin-not">${NOT.trim().split(/\n\s*\n/).map(x=>`<p>${esc(x).replace(/\n/g,'<br>')}</p>`).join('')}${IMZA?`<p class="yemin-imza">${esc(IMZA)}</p>`:''}</div>`:''}
         </div>`;
       document.body.appendChild(dlg);
       const close=()=>{ if(dlg.open) dlg.close(); else dlg.removeAttribute('open'); };
